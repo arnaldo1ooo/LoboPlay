@@ -56,6 +56,7 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_ESCRITORIO = "escritorio";
     public static final String EXTRA_PANTALLA_COMPLETA = "pantallaCompleta";
+    public static final String EXTRA_PERMITIR_ANUNCIOS = "permitirAnuncios";
 
     // Codigo comun: encuentra el reproductor (un video con tamano, o si no un marco grande).
     // lpCaja devuelve el contenedor del video que incluye sus botones (silencio, pantalla completa...).
@@ -149,7 +150,9 @@ public class NavegadorActivity extends AppCompatActivity {
         }
 
         BloqueadorAnuncios.cargar(this);
-        final boolean bloquear = Ajustes.bloquearAnuncios(this);
+        // Los anuncios se bloquean siempre, salvo en los sitios que lo piden (algunos canales
+        // no reproducen si detectan el bloqueador).
+        final boolean bloquear = !getIntent().getBooleanExtra(EXTRA_PERMITIR_ANUNCIOS, false);
 
         contenedor = findViewById(R.id.contenedor);
         panel = findViewById(R.id.panel);
@@ -261,8 +264,6 @@ public class NavegadorActivity extends AppCompatActivity {
             estadoPortada = findViewById(R.id.estadoPortada);
             portada.setVisibility(View.VISIBLE);
             portada.setOnClickListener(v -> abandonarAutomatico());
-            // Los canales se ven en horizontal.
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
             barrasDelSistema(false);
             manejador.postDelayed(this::buscarReproductor, 1500);
         }
@@ -331,7 +332,6 @@ public class NavegadorActivity extends AppCompatActivity {
     // Si no se logra (o el usuario toca la portada), muestra la pagina normal.
     private void abandonarAutomatico() {
         autoCompleta = false;
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         portada.setVisibility(View.GONE);
         barra.setVisibility(View.VISIBLE);
         barrasDelSistema(true);
@@ -520,11 +520,11 @@ public class NavegadorActivity extends AppCompatActivity {
 
     // Vuelve a la pagina anterior, o cierra el navegador si no hay mas.
     private void retroceder() {
-        if (inmersivo) {
+        if (vistaCompleta != null) {
+            salirPantallaCompleta();
+        } else if (inmersivo) {
             // En los canales con pantalla completa automatica, atras cierra el canal.
             finish();
-        } else if (vistaCompleta != null) {
-            salirPantallaCompleta();
         } else if (web.canGoBack()) {
             web.goBack();
         } else {
@@ -546,8 +546,8 @@ public class NavegadorActivity extends AppCompatActivity {
         if (avisoCompleta != null) avisoCompleta.onCustomViewHidden();
         avisoCompleta = null;
         panel.setVisibility(View.VISIBLE);
-        if (!autoCompleta) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-        barrasDelSistema(true);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        barrasDelSistema(!inmersivo);
     }
 
     // Muestra u oculta las barras del sistema.

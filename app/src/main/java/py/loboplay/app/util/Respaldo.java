@@ -37,6 +37,7 @@ public final class Respaldo {
             o.put("favorito", s.favorito);
             o.put("escritorio", s.escritorio);
             o.put("pantallaCompleta", s.pantallaCompleta);
+            o.put("permitirAnuncios", s.permitirAnuncios);
             if (s.paginaUrl != null) o.put("pagina", s.paginaUrl);
             arreglo.put(o);
         }
@@ -85,6 +86,7 @@ public final class Respaldo {
             s.favorito = o.optBoolean("favorito", false);
             s.escritorio = o.optBoolean("escritorio", false);
             s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
+            s.permitirAnuncios = o.optBoolean("permitirAnuncios", false);
             String pagina = o.optString("pagina", "").trim();
             s.paginaUrl = pagina.toLowerCase(Locale.ROOT).matches("^https?://.+") ? pagina : null;
             s.orden = ++siguienteOrden;

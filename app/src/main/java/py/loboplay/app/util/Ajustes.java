@@ -7,7 +7,6 @@ import androidx.preference.PreferenceManager;
 
 // Lee y guarda las opciones de la app.
 public final class Ajustes {
-    public static final String BLOQUEAR = "bloquear_anuncios";
     public static final String EXTERNO = "abrir_externo";
     public static final String PIP = "pip_activado";
     public static final String CURSOR_TV = "cursor_tv";
@@ -18,11 +17,6 @@ public final class Ajustes {
 
     private static SharedPreferences prefs(Context c) {
         return PreferenceManager.getDefaultSharedPreferences(c);
-    }
-
-    // Dice si el bloqueador de anuncios esta activo.
-    public static boolean bloquearAnuncios(Context c) {
-        return prefs(c).getBoolean(BLOQUEAR, true);
     }
 
     // Dice si los sitios se abren en el navegador externo.

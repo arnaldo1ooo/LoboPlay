@@ -12,8 +12,6 @@
     <string name="guardar">Guardar</string>
     <string name="cancelar">Cancelar</string>
     <string name="editar_sitio">Editar sitio</string>
-    <string name="bloquear_anuncios">Bloquear anuncios</string>
-    <string name="bloquear_anuncios_resumen">Filtra los dominios de publicidad al navegar</string>
     <string name="abrir_externo">Abrir en el navegador externo</string>
     <string name="abrir_externo_resumen">Usa el navegador del dispositivo en lugar del interno</string>
     <string name="respaldo">Respaldo</string>
@@ -42,6 +40,7 @@
     <string name="pantalla_completa_auto">Reproducir en pantalla completa al abrir</string>
     <string name="pagina_canal">Página del canal (opcional)</string>
     <string name="pagina_canal_ayuda">Se usa para buscar el nombre y el icono si la dirección de arriba es solo el video</string>
+    <string name="permitir_anuncios">No bloquear anuncios en este sitio</string>
     <string name="cursor">Cursor</string>
     <string name="pip_boton">Imagen en imagen</string>
     <string name="sin_recientes">Todavía no abriste ningún sitio</string>

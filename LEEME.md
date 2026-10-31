@@ -7,7 +7,7 @@ App Android (celular y Android TV) para guardar tus sitios favoritos en un menú
 - Agregar, editar y eliminar sitios a mano (pulsación larga sobre un sitio = opciones).
 - Canales de TV abierta precargados la primera vez (archivo `app/src/main/assets/canales.json`).
 - Icono de cada sitio: por defecto el de la propia página; se puede cambiar por uno propio.
-- Bloqueador de anuncios, con interruptor en Ajustes (lista en `app/src/main/assets/anuncios.txt`).
+- Bloqueador de anuncios siempre activo (lista en `app/src/main/assets/anuncios.txt`). En los sitios que no reproducen si lo detectan, se desactiva con "No bloquear anuncios en este sitio" (Agregar/Editar).
 - Video a pantalla completa dentro del navegador interno.
 - Exportar e importar la lista en un archivo JSON (Ajustes > Respaldo). Al importar no se repiten los sitios que ya tienes. Algunas TV no traen selector de archivos; en ese caso la app lo avisa.
 
@@ -45,7 +45,8 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Al abrir el sitio se muestra el logo, la app busca el reproductor, lo reproduce y lo pasa a pantalla completa sola.
 - Atrás cierra el canal y vuelve al menú. Si no encuentra el reproductor en unos 40 segundos, muestra la página normal.
 - Los canales precargados vienen con esta opción activada. La opción se guarda también en el respaldo.
-- El canal se abre en horizontal y el reproductor conserva sus botones (silencio, pantalla completa, calidad). Con Atrás se cierra el canal.
+- El reproductor conserva sus botones (silencio, pantalla completa, calidad). La app pasa a horizontal solo al tocar pantalla completa. Atrás sale de la pantalla completa y, estando en el canal, lo cierra.
+- Interruptor por sitio "No bloquear anuncios en este sitio" (SNT lo trae activado, porque su página no reproduce si detecta el bloqueador).
 - Campo opcional "Página del canal": si la dirección principal es solo el reproductor (por ejemplo `desdepylabs.com` para Telefuturo), la página del canal se usa para buscar el nombre y el icono.
 
 ## Novedades de la versión 1.1
