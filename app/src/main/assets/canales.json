@@ -1,5 +1,5 @@
 [
-  { "nombre": "Telefuturo", "url": "https://www.desdepylabs.com/External/tvaccion/telefuturo", "pantallaCompleta": true },
+  { "nombre": "Telefuturo", "url": "https://www.desdepylabs.com/External/tvaccion/telefuturo", "pagina": "https://www.telefuturo.com.py", "pantallaCompleta": true },
   { "nombre": "SNT", "url": "https://www.snt.com.py/envivo/", "pantallaCompleta": true },
   { "nombre": "Trece", "url": "https://www.trece.com.py" },
   { "nombre": "Unicanal", "url": "https://www.unicanal.com.py" }

@@ -39,7 +39,9 @@ public final class IconoHelper {
         SitioDao dao = AppDatabase.get(ctx).sitioDao();
         Sitio sitio = dao.buscar(idSitio);
         if (sitio == null) return;
-        Bitmap bmp = leerPagina(sitio.url).icono;
+        // Si el sitio tiene una pagina propia (canal con reproductor aparte), el icono sale de ahi.
+        String fuente = sitio.paginaUrl != null && !sitio.paginaUrl.trim().isEmpty() ? sitio.paginaUrl : sitio.url;
+        Bitmap bmp = leerPagina(fuente).icono;
         if (bmp == null) return;
         String ruta = guardar(ctx, bmp, "web_" + idSitio);
         if (ruta == null) return;

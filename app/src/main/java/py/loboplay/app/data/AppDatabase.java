@@ -2,37 +2,17 @@ package py.loboplay.app.data;
 
 import android.content.Context;
 
-import androidx.annotation.NonNull;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
-import androidx.room.migration.Migration;
-import androidx.sqlite.db.SupportSQLiteDatabase;
 
 // Base de datos local de la app.
-@Database(entities = {Sitio.class}, version = 3, exportSchema = false)
+@Database(entities = {Sitio.class}, version = 1, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract SitioDao sitioDao();
 
     private static volatile AppDatabase instancia;
-
-    // Agrega las columnas nuevas sin perder los sitios guardados.
-    private static final Migration DE_1_A_2 = new Migration(1, 2) {
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE sitio ADD COLUMN escritorio INTEGER NOT NULL DEFAULT 0");
-            db.execSQL("ALTER TABLE sitio ADD COLUMN orden INTEGER NOT NULL DEFAULT 0");
-            db.execSQL("ALTER TABLE sitio ADD COLUMN ultimoAcceso INTEGER NOT NULL DEFAULT 0");
-        }
-    };
-
-    private static final Migration DE_2_A_3 = new Migration(2, 3) {
-        @Override
-        public void migrate(@NonNull SupportSQLiteDatabase db) {
-            db.execSQL("ALTER TABLE sitio ADD COLUMN pantallaCompleta INTEGER NOT NULL DEFAULT 0");
-        }
-    };
 
     // Devuelve la unica base de datos de la app.
     public static AppDatabase get(Context ctx) {
@@ -41,7 +21,6 @@ public abstract class AppDatabase extends RoomDatabase {
                 if (instancia == null) {
                     instancia = Room.databaseBuilder(
                                     ctx.getApplicationContext(), AppDatabase.class, "loboplay.db")
-                            .addMigrations(DE_1_A_2, DE_2_A_3)
                             .build();
                 }
             }

@@ -45,6 +45,8 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Al abrir el sitio se muestra el logo, la app busca el reproductor, lo reproduce y lo pasa a pantalla completa sola.
 - Atrás cierra el canal y vuelve al menú. Si no encuentra el reproductor en unos 40 segundos, muestra la página normal.
 - Los canales precargados vienen con esta opción activada. La opción se guarda también en el respaldo.
+- El canal se abre en horizontal y el reproductor conserva sus botones (silencio, pantalla completa, calidad). Con Atrás se cierra el canal.
+- Campo opcional "Página del canal": si la dirección principal es solo el reproductor (por ejemplo `desdepylabs.com` para Telefuturo), la página del canal se usa para buscar el nombre y el icono.
 
 ## Novedades de la versión 1.1
 - Diseño más moderno: tarjetas redondeadas, logo en el menú, botón flotante "Agregar sitio", chips Todos/Favoritos y buscador redondeado.

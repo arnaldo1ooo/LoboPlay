@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.PictureInPictureParams;
 import android.app.UiModeManager;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -56,23 +57,32 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_ESCRITORIO = "escritorio";
     public static final String EXTRA_PANTALLA_COMPLETA = "pantallaCompleta";
 
-    // Codigo comun: encuentra el reproductor (un video, o si no un marco grande con video).
-    private static final String JS_COMUN = "function lpBuscar(){"
+    // Codigo comun: encuentra el reproductor (un video con tamano, o si no un marco grande).
+    // lpCaja devuelve el contenedor del video que incluye sus botones (silencio, pantalla completa...).
+    private static final String JS_COMUN = "function lpCaja(v){"
+            + "var vr=v.getBoundingClientRect();var p=v.parentElement;"
+            + "for(var i=0;p&&p!==document.body&&p!==document.documentElement&&i<6;i++,p=p.parentElement){"
+            + "var r=p.getBoundingClientRect();"
+            + "if(r.height>vr.height*1.4+10||r.width>vr.width*1.15+10)break;"
+            + "if(p.querySelector('button,[role=button],input[type=range]'))return p;}"
+            + "return v;}"
+            + "function lpBuscar(){"
             + "var vs=[].slice.call(document.querySelectorAll('video'));"
             + "vs.sort(function(a,b){return b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight;});"
             + "var fs=[].slice.call(document.querySelectorAll('iframe')).filter(function(f){"
             + "return f.clientWidth>=400&&f.clientHeight>=220;});"
             + "fs.sort(function(a,b){return b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight;});"
-            + "var v=vs[0],f=fs[0];"
-            + "var t=(v&&(v.clientWidth>0||v.readyState>0))?v:(f||v);"
-            + "return {t:t,v:(t&&t.tagName==='VIDEO')?t:null,nv:vs.length,nf:fs.length};}";
+            + "var v=vs[0]&&vs[0].clientWidth>0&&vs[0].clientHeight>0?vs[0]:null,f=fs[0];"
+            + "var t=v?lpCaja(v):(f||null);"
+            + "return {t:t,v:v,nv:vs.length,nf:fs.length};}";
 
     // Solo mira: devuelve que encontro (para saber si ya hay reproductor).
     private static final String JS_BUSCAR = "(function(){" + JS_COMUN
-            + "var r=lpBuscar();return JSON.stringify({ok:!!r.t,tipo:r.t?r.t.tagName:'',nv:r.nv,nf:r.nf});})()";
+            + "var r=lpBuscar();return JSON.stringify({ok:!!r.t,tipo:r.v?'VIDEO':(r.t?'IFRAME':''),nv:r.nv,nf:r.nf});})()";
 
-    // Estira el reproductor para que ocupe toda la pantalla y lo reproduce.
-    // Se repite cada segundo y medio por si la pagina lo acomoda de nuevo.
+    // Estira el reproductor (con sus botones) para que ocupe toda la pantalla y lo reproduce.
+    // Se repite cada segundo y medio por si la pagina lo acomoda de nuevo. El sonido se activa
+    // solo las primeras veces: despues respeta lo que elija el usuario.
     private static final String JS_INMERSIVO = "(function(){" + JS_COMUN
             + "function poner(e,k,v){e.style.setProperty(k,v,'important');}"
             + "function ver(){var r=lpBuscar();var t=r.t;if(!t)return false;"
@@ -80,13 +90,16 @@ public class NavegadorActivity extends AppCompatActivity {
             + "poner(t,'width','100vw');poner(t,'height','100vh');poner(t,'max-width','none');"
             + "poner(t,'max-height','none');poner(t,'margin','0');poner(t,'padding','0');"
             + "poner(t,'border','0');poner(t,'z-index','2147483647');poner(t,'background','#000');"
-            + "poner(t,'object-fit','contain');poner(t,'transform','none');"
+            + "poner(t,'transform','none');"
+            + "if(r.v&&t!==r.v){poner(r.v,'width','100%');poner(r.v,'height','100%');}"
+            + "if(r.v)poner(r.v,'object-fit','contain');"
             + "for(var p=t.parentElement;p&&p!==document.body;p=p.parentElement){"
             + "poner(p,'transform','none');poner(p,'filter','none');poner(p,'perspective','none');"
             + "poner(p,'contain','none');poner(p,'overflow','visible');}"
             + "poner(document.documentElement,'overflow','hidden');"
             + "poner(document.body,'overflow','hidden');poner(document.body,'background','#000');"
-            + "if(r.v){try{r.v.muted=false;if(r.v.paused)r.v.play();}catch(e){}}"
+            + "window.__lpN=(window.__lpN||0)+1;"
+            + "if(r.v&&window.__lpN<=4){try{r.v.muted=false;if(r.v.paused)r.v.play();}catch(e){}}"
             + "return true;}"
             + "if(!ver())return 'no';"
             + "if(!window.__lpInmersivo){window.__lpInmersivo=setInterval(ver,1500);}"
@@ -216,6 +229,7 @@ public class NavegadorActivity extends AppCompatActivity {
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
                 panel.setVisibility(View.GONE);
                 portada.setVisibility(View.GONE);
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
                 barrasDelSistema(false);
             }
 
@@ -247,6 +261,8 @@ public class NavegadorActivity extends AppCompatActivity {
             estadoPortada = findViewById(R.id.estadoPortada);
             portada.setVisibility(View.VISIBLE);
             portada.setOnClickListener(v -> abandonarAutomatico());
+            // Los canales se ven en horizontal.
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
             barrasDelSistema(false);
             manejador.postDelayed(this::buscarReproductor, 1500);
         }
@@ -315,6 +331,7 @@ public class NavegadorActivity extends AppCompatActivity {
     // Si no se logra (o el usuario toca la portada), muestra la pagina normal.
     private void abandonarAutomatico() {
         autoCompleta = false;
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         portada.setVisibility(View.GONE);
         barra.setVisibility(View.VISIBLE);
         barrasDelSistema(true);
@@ -529,6 +546,7 @@ public class NavegadorActivity extends AppCompatActivity {
         if (avisoCompleta != null) avisoCompleta.onCustomViewHidden();
         avisoCompleta = null;
         panel.setVisibility(View.VISIBLE);
+        if (!autoCompleta) setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         barrasDelSistema(true);
     }
 

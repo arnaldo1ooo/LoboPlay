@@ -37,6 +37,7 @@ public final class Respaldo {
             o.put("favorito", s.favorito);
             o.put("escritorio", s.escritorio);
             o.put("pantallaCompleta", s.pantallaCompleta);
+            if (s.paginaUrl != null) o.put("pagina", s.paginaUrl);
             arreglo.put(o);
         }
         JSONObject raiz = new JSONObject();
@@ -84,6 +85,8 @@ public final class Respaldo {
             s.favorito = o.optBoolean("favorito", false);
             s.escritorio = o.optBoolean("escritorio", false);
             s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
+            String pagina = o.optString("pagina", "").trim();
+            s.paginaUrl = pagina.toLowerCase(Locale.ROOT).matches("^https?://.+") ? pagina : null;
             s.orden = ++siguienteOrden;
             nuevos.add(dao.insertar(s));
         }

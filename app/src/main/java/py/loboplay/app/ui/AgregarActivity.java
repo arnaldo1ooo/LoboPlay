@@ -40,6 +40,7 @@ public class AgregarActivity extends AppCompatActivity {
 
     private EditText campoNombre;
     private EditText campoUrl;
+    private EditText campoPagina;
     private ImageView vistaIcono;
     private TextView estado;
     private View cargando;
@@ -77,6 +78,7 @@ public class AgregarActivity extends AppCompatActivity {
 
         campoNombre = findViewById(R.id.campoNombre);
         campoUrl = findViewById(R.id.campoUrl);
+        campoPagina = findViewById(R.id.campoPagina);
         vistaIcono = findViewById(R.id.vistaIcono);
         estado = findViewById(R.id.estado);
         cargando = findViewById(R.id.cargando);
@@ -99,6 +101,19 @@ public class AgregarActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 manejador.removeCallbacks(consultar);
                 manejador.postDelayed(consultar, ESPERA_MS);
+            }
+        });
+        campoPagina.addTextChangedListener(new SimpleWatcher() {
+            @Override
+            public void afterTextChanged(Editable s) {
+                manejador.removeCallbacks(consultar);
+                manejador.postDelayed(consultar, ESPERA_MS);
+            }
+        });
+        campoPagina.setOnFocusChangeListener((v, tieneFoco) -> {
+            if (!tieneFoco) {
+                manejador.removeCallbacks(consultar);
+                consultarPagina();
             }
         });
         campoUrl.setOnFocusChangeListener((v, tieneFoco) -> {
@@ -136,7 +151,7 @@ public class AgregarActivity extends AppCompatActivity {
 
     // Busca el titulo y el icono de la pagina para sugerirlos (sin frenar la pantalla).
     private void consultarPagina() {
-        final String url = normalizar(campoUrl.getText().toString());
+        final String url = fuenteInfo();
         if (url == null || url.equals(ultimaConsulta)) return;
         ultimaConsulta = url;
         final int mia = ++solicitud;
@@ -153,6 +168,12 @@ public class AgregarActivity extends AppCompatActivity {
                 aplicarSugerencia(url, pagina);
             });
         });
+    }
+
+    // De donde salen el nombre y el icono: la pagina del canal si se escribio, si no la direccion principal.
+    private String fuenteInfo() {
+        String pagina = normalizar(campoPagina.getText().toString());
+        return pagina != null ? pagina : normalizar(campoUrl.getText().toString());
     }
 
     // Si la pagina tarda, avisa que se puede guardar igual.
@@ -194,10 +215,11 @@ public class AgregarActivity extends AppCompatActivity {
 
     // Completa el formulario con un sitio existente.
     private void rellenar(Sitio s) {
-        ultimaConsulta = s.url;
+        ultimaConsulta = s.paginaUrl != null && !s.paginaUrl.isEmpty() ? s.paginaUrl : s.url;
         campoNombre.setText(s.nombre);
         nombreEditado = true;
         campoUrl.setText(s.url);
+        if (s.paginaUrl != null) campoPagina.setText(s.paginaUrl);
         switchEscritorio.setChecked(s.escritorio);
         switchPantallaCompleta.setChecked(s.pantallaCompleta);
         iconoPropio = s.iconoPropio;
@@ -261,7 +283,14 @@ public class AgregarActivity extends AppCompatActivity {
             return;
         }
         String escrito = campoNombre.getText().toString().trim();
-        final String nombre = escrito.isEmpty() ? nombreDesdeUrl(url) : escrito;
+        final String paginaEscrita = campoPagina.getText().toString().trim();
+        final String pagina = paginaEscrita.isEmpty() ? null : normalizar(paginaEscrita);
+        if (!paginaEscrita.isEmpty() && pagina == null) {
+            campoPagina.setError("La dirección no es válida");
+            return;
+        }
+        final String fuente = pagina != null ? pagina : url;
+        final String nombre = escrito.isEmpty() ? nombreDesdeUrl(fuente) : escrito;
         cancelarBusqueda();
         findViewById(R.id.btnGuardar).setEnabled(false);
 
@@ -272,19 +301,21 @@ public class AgregarActivity extends AppCompatActivity {
         final boolean pantallaCompleta = switchPantallaCompleta.isChecked();
         final Context app = getApplicationContext();
         // Icono que ya se bajo mientras se escribia la direccion (si coincide).
-        final Bitmap sugerido = (propio == null && url.equals(urlSugerida)) ? iconoSugerido : null;
+        final Bitmap sugerido = (propio == null && fuente.equals(urlSugerida)) ? iconoSugerido : null;
 
         Hilos.IO.execute(() -> {
             SitioDao dao = AppDatabase.get(app).sitioDao();
             Sitio existente = id >= 0 ? dao.buscar(id) : null;
             Sitio s = existente != null ? existente : new Sitio();
 
-            boolean urlCambio = s.url == null || !s.url.equals(url);
+            String fuenteVieja = s.paginaUrl != null && !s.paginaUrl.isEmpty() ? s.paginaUrl : s.url;
+            boolean urlCambio = fuenteVieja == null || !fuenteVieja.equals(fuente);
             if (s.iconoPropio != null && !s.iconoPropio.equals(propio)) {
                 IconoHelper.borrar(s.iconoPropio);
             }
             s.nombre = nombre;
             s.url = url;
+            s.paginaUrl = pagina;
             s.iconoPropio = propio;
             s.escritorio = escritorio;
             s.pantallaCompleta = pantallaCompleta;

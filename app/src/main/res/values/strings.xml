@@ -40,6 +40,8 @@
     <string name="ordenar">Ordenar</string>
     <string name="modo_escritorio">Abrir en modo escritorio</string>
     <string name="pantalla_completa_auto">Reproducir en pantalla completa al abrir</string>
+    <string name="pagina_canal">Página del canal (opcional)</string>
+    <string name="pagina_canal_ayuda">Se usa para buscar el nombre y el icono si la dirección de arriba es solo el video</string>
     <string name="cursor">Cursor</string>
     <string name="pip_boton">Imagen en imagen</string>
     <string name="sin_recientes">Todavía no abriste ningún sitio</string>

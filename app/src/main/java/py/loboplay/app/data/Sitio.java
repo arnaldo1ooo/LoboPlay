@@ -15,6 +15,8 @@ public class Sitio {
     public String iconoWeb;    // ruta del icono bajado de la pagina
     public boolean favorito;
 
+    public String paginaUrl;   // pagina del canal (opcional): de ahi salen el nombre y el icono
+
     @ColumnInfo(defaultValue = "0")
     public boolean escritorio; // abrir como pagina de escritorio
 
