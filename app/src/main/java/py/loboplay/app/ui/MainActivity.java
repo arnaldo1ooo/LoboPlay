@@ -192,16 +192,25 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
 
     // Arma la fila de paises con los que tienen los sitios guardados (solo si hay alguno).
     private void armarPaises() {
-        java.util.TreeSet<String> codigos = new java.util.TreeSet<>();
-        for (Sitio s : todos) {
-            if (s.pais != null && !s.pais.isEmpty()) codigos.add(s.pais);
-        }
+        // "Otro" va siempre al final.
+        java.util.TreeSet<String> codigos = new java.util.TreeSet<>((a, b) -> {
+            if (a.equals(b)) return 0;
+            if (a.equals(Paises.OTRO)) return 1;
+            if (b.equals(Paises.OTRO)) return -1;
+            return a.compareTo(b);
+        });
+        for (Sitio s : todos) codigos.add(codigoPais(s));
         if (paisFiltro != null && !codigos.contains(paisFiltro)) paisFiltro = null;
         chipsPais.removeAllViews();
         filaPais.setVisibility(codigos.isEmpty() ? View.GONE : View.VISIBLE);
         if (codigos.isEmpty()) return;
         chipsPais.addView(crearChipPais(null, getString(R.string.pais_todos)));
         for (String c : codigos) chipsPais.addView(crearChipPais(c, Paises.etiqueta(c)));
+    }
+
+    // Pais del sitio; si no se pudo identificar cuenta como "Otro".
+    private static String codigoPais(Sitio s) {
+        return s.pais == null || s.pais.isEmpty() ? Paises.OTRO : s.pais;
     }
 
     private Chip crearChipPais(String codigo, String texto) {
@@ -233,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         List<Sitio> visibles = new ArrayList<>();
         for (Sitio s : base) {
             if (soloFavoritos && !s.favorito) continue;
-            if (paisFiltro != null && !paisFiltro.equals(s.pais)) continue;
+            if (paisFiltro != null && !paisFiltro.equals(codigoPais(s))) continue;
             boolean coincide = q.isEmpty()
                     || (s.nombre != null && s.nombre.toLowerCase(Locale.ROOT).contains(q))
                     || (s.url != null && s.url.toLowerCase(Locale.ROOT).contains(q));

@@ -29,8 +29,11 @@ public final class Paises {
             {"SV", "El Salvador"}, {"ES", "España"}, {"US", "Estados Unidos"}, {"GT", "Guatemala"},
             {"HN", "Honduras"}, {"MX", "México"}, {"NI", "Nicaragua"}, {"PA", "Panamá"},
             {"PY", "Paraguay"}, {"PE", "Perú"}, {"DO", "República Dominicana"},
-            {"UY", "Uruguay"}, {"VE", "Venezuela"}
+            {"UY", "Uruguay"}, {"VE", "Venezuela"},
+            {"OT", "Otro"} // paginas cuyo pais no se identifica
     };
+
+    public static final String OTRO = "OT";
 
     private Paises() {
     }
@@ -52,7 +55,7 @@ public final class Paises {
 
     // Emoji de bandera a partir del codigo (PY -> bandera de Paraguay).
     public static String bandera(String codigo) {
-        if (codigo == null || codigo.length() != 2) return "🌐";
+        if (codigo == null || codigo.length() != 2 || codigo.equals(OTRO)) return "🌐";
         StringBuilder sb = new StringBuilder();
         for (char c : codigo.toUpperCase(Locale.ROOT).toCharArray()) {
             if (c < 'A' || c > 'Z') return "🌐";

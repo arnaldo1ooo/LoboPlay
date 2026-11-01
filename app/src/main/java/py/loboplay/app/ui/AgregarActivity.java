@@ -370,7 +370,10 @@ public class AgregarActivity extends AppCompatActivity {
     // Pone el titulo y el icono encontrados, sin pisar lo que eligio el usuario.
     private void aplicarSugerencia(String url, IconoHelper.Pagina pagina) {
         urlSugerida = url;
-        if (!paisEditado) ponerPais(Paises.deDominio(url));
+        if (!paisEditado) {
+            String sugerido = Paises.deDominio(url);
+            ponerPais(sugerido != null ? sugerido : Paises.OTRO);
+        }
         iconoSugerido = pagina.icono;
 
         boolean nombreVacio = campoNombre.getText().toString().trim().isEmpty();
@@ -462,7 +465,8 @@ public class AgregarActivity extends AppCompatActivity {
         final String nombre = escrito.isEmpty() ? nombreDesdeUrl(url) : escrito;
         final String fuente = url;
         final String video = videoDetectado;
-        final String pais = paisElegido != null ? paisElegido : Paises.deDominio(url);
+        final String dominio = Paises.deDominio(url);
+        final String pais = paisElegido != null ? paisElegido : (dominio != null ? dominio : Paises.OTRO);
         cancelarBusqueda();
         findViewById(R.id.btnGuardar).setEnabled(false);
 
