@@ -35,7 +35,8 @@ public final class Precarga {
                     s.url = o.getString("url");
                     s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
                     s.bloquearAnuncios = o.optBoolean("bloquearAnuncios", true);
-                    s.paginaUrl = o.has("pagina") ? o.getString("pagina") : null;
+                    s.videoUrl = o.has("video") ? o.getString("video") : null;
+                    s.pais = o.has("pais") ? o.getString("pais") : null;
                     s.orden = i + 1;
                     ids.add(dao.insertar(s));
                 }

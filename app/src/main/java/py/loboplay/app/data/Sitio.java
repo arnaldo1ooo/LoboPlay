@@ -15,7 +15,8 @@ public class Sitio {
     public String iconoWeb;    // ruta del icono bajado de la pagina
     public boolean favorito;
 
-    public String paginaUrl;   // pagina del canal (opcional): de ahi salen el nombre y el icono
+    public String videoUrl;    // video detectado en la pagina (opcional): si existe se abre directo, si no, la pagina
+    public String pais;        // codigo de pais (PY, AR...) para organizar el menu
 
     @ColumnInfo(defaultValue = "0")
     public boolean escritorio; // abrir como pagina de escritorio

@@ -38,7 +38,8 @@ public final class Respaldo {
             o.put("escritorio", s.escritorio);
             o.put("pantallaCompleta", s.pantallaCompleta);
             o.put("bloquearAnuncios", s.bloquearAnuncios);
-            if (s.paginaUrl != null) o.put("pagina", s.paginaUrl);
+            if (s.videoUrl != null) o.put("video", s.videoUrl);
+            if (s.pais != null) o.put("pais", s.pais);
             arreglo.put(o);
         }
         JSONObject raiz = new JSONObject();
@@ -87,8 +88,10 @@ public final class Respaldo {
             s.escritorio = o.optBoolean("escritorio", false);
             s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
             s.bloquearAnuncios = o.optBoolean("bloquearAnuncios", true);
-            String pagina = o.optString("pagina", "").trim();
-            s.paginaUrl = pagina.toLowerCase(Locale.ROOT).matches("^https?://.+") ? pagina : null;
+            String video = o.optString("video", "").trim();
+            s.videoUrl = video.toLowerCase(Locale.ROOT).matches("^https?://.+") ? video : null;
+            String pais = o.optString("pais", "").trim().toUpperCase(Locale.ROOT);
+            s.pais = pais.matches("^[A-Z]{2}$") ? pais : null;
             s.orden = ++siguienteOrden;
             nuevos.add(dao.insertar(s));
         }

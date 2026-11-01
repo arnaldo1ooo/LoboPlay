@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -20,8 +21,12 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.textfield.MaterialAutoCompleteTextView;
+
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import py.loboplay.app.R;
@@ -30,7 +35,9 @@ import py.loboplay.app.data.IconoHelper;
 import py.loboplay.app.data.Sitio;
 import py.loboplay.app.data.SitioDao;
 import py.loboplay.app.util.Bordes;
+import py.loboplay.app.util.DetectorVideo;
 import py.loboplay.app.util.Hilos;
+import py.loboplay.app.util.Paises;
 
 // Formulario para agregar o editar un sitio.
 public class AgregarActivity extends AppCompatActivity {
@@ -40,7 +47,8 @@ public class AgregarActivity extends AppCompatActivity {
 
     private EditText campoNombre;
     private EditText campoUrl;
-    private EditText campoPagina;
+    private EditText campoVideo;
+    private MaterialAutoCompleteTextView campoPais;
     private ImageView vistaIcono;
     private TextView estado;
     private View cargando;
@@ -62,6 +70,13 @@ public class AgregarActivity extends AppCompatActivity {
     private boolean nombreEditado = false;
     private boolean poniendoNombre = false;
 
+    // Pais elegido (codigo) y video detectado en la pagina.
+    private String paisElegido;
+    private boolean paisEditado = false;
+    private String videoDetectado;
+    private DetectorVideo detector;
+    private List<Paises.Pais> paises;
+
     private final Handler manejador = new Handler(Looper.getMainLooper());
     private final Runnable consultar = this::consultarPagina;
     private final Runnable avisoLento = this::avisarBusquedaLenta;
@@ -79,7 +94,8 @@ public class AgregarActivity extends AppCompatActivity {
 
         campoNombre = findViewById(R.id.campoNombre);
         campoUrl = findViewById(R.id.campoUrl);
-        campoPagina = findViewById(R.id.campoPagina);
+        campoVideo = findViewById(R.id.campoVideo);
+        campoPais = findViewById(R.id.campoPais);
         vistaIcono = findViewById(R.id.vistaIcono);
         estado = findViewById(R.id.estado);
         cargando = findViewById(R.id.cargando);
@@ -105,19 +121,7 @@ public class AgregarActivity extends AppCompatActivity {
                 manejador.postDelayed(consultar, ESPERA_MS);
             }
         });
-        campoPagina.addTextChangedListener(new SimpleWatcher() {
-            @Override
-            public void afterTextChanged(Editable s) {
-                manejador.removeCallbacks(consultar);
-                manejador.postDelayed(consultar, ESPERA_MS);
-            }
-        });
-        campoPagina.setOnFocusChangeListener((v, tieneFoco) -> {
-            if (!tieneFoco) {
-                manejador.removeCallbacks(consultar);
-                consultarPagina();
-            }
-        });
+        prepararPaises();
         campoUrl.setOnFocusChangeListener((v, tieneFoco) -> {
             if (!tieneFoco) {
                 manejador.removeCallbacks(consultar);
@@ -153,7 +157,7 @@ public class AgregarActivity extends AppCompatActivity {
 
     // Busca el titulo y el icono de la pagina para sugerirlos (sin frenar la pantalla).
     private void consultarPagina() {
-        final String url = fuenteInfo();
+        final String url = normalizar(campoUrl.getText().toString());
         if (url == null || url.equals(ultimaConsulta)) return;
         ultimaConsulta = url;
         final int mia = ++solicitud;
@@ -161,6 +165,7 @@ public class AgregarActivity extends AppCompatActivity {
         mostrarCarga(true);
         manejador.removeCallbacks(avisoLento);
         manejador.postDelayed(avisoLento, AVISO_LENTO_MS);
+        buscarVideo(url);
         Hilos.RED.execute(() -> {
             IconoHelper.Pagina pagina = IconoHelper.leerPagina(url);
             runOnUiThread(() -> {
@@ -172,10 +177,35 @@ public class AgregarActivity extends AppCompatActivity {
         });
     }
 
-    // De donde salen el nombre y el icono: la pagina del canal si se escribio, si no la direccion principal.
-    private String fuenteInfo() {
-        String pagina = normalizar(campoPagina.getText().toString());
-        return pagina != null ? pagina : normalizar(campoUrl.getText().toString());
+    // Lista de paises (desplegable) y sugerencia segun el final de la direccion (.com.py -> Paraguay).
+    private void prepararPaises() {
+        paises = Paises.todos();
+        List<String> etiquetas = new ArrayList<>();
+        for (Paises.Pais p : paises) etiquetas.add(p.etiqueta());
+        campoPais.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, etiquetas));
+        campoPais.setOnItemClickListener((padre, v, pos, id) -> {
+            paisElegido = paises.get(pos).codigo;
+            paisEditado = true;
+        });
+    }
+
+    private void ponerPais(String codigo) {
+        paisElegido = codigo;
+        campoPais.setText(codigo == null ? "" : Paises.etiqueta(codigo), false);
+    }
+
+    // Busca en segundo plano el video de la pagina; el campo queda bloqueado y se llena solo.
+    private void buscarVideo(String pagina) {
+        if (detector != null) detector.cancelar();
+        videoDetectado = null;
+        campoVideo.setText("");
+        campoVideo.setHint(R.string.video_buscando);
+        detector = DetectorVideo.buscar(this, pagina, video -> {
+            if (isFinishing() || isDestroyed()) return;
+            videoDetectado = video;
+            campoVideo.setText(video == null ? "" : video);
+            campoVideo.setHint(video == null ? R.string.video_no_encontrado : R.string.video_encontrado);
+        });
     }
 
     // Si la pagina tarda, avisa que se puede guardar igual.
@@ -200,6 +230,7 @@ public class AgregarActivity extends AppCompatActivity {
     // Pone el titulo y el icono encontrados, sin pisar lo que eligio el usuario.
     private void aplicarSugerencia(String url, IconoHelper.Pagina pagina) {
         urlSugerida = url;
+        if (!paisEditado) ponerPais(Paises.deDominio(url));
         iconoSugerido = pagina.icono;
 
         boolean nombreVacio = campoNombre.getText().toString().trim().isEmpty();
@@ -217,11 +248,14 @@ public class AgregarActivity extends AppCompatActivity {
 
     // Completa el formulario con un sitio existente.
     private void rellenar(Sitio s) {
-        ultimaConsulta = s.paginaUrl != null && !s.paginaUrl.isEmpty() ? s.paginaUrl : s.url;
+        ultimaConsulta = s.url;
         campoNombre.setText(s.nombre);
         nombreEditado = true;
         campoUrl.setText(s.url);
-        if (s.paginaUrl != null) campoPagina.setText(s.paginaUrl);
+        videoDetectado = s.videoUrl;
+        campoVideo.setText(s.videoUrl == null ? "" : s.videoUrl);
+        paisEditado = s.pais != null;
+        ponerPais(s.pais);
         switchEscritorio.setChecked(s.escritorio);
         switchPantallaCompleta.setChecked(s.pantallaCompleta);
         switchBloquearAnuncios.setChecked(s.bloquearAnuncios);
@@ -286,14 +320,10 @@ public class AgregarActivity extends AppCompatActivity {
             return;
         }
         String escrito = campoNombre.getText().toString().trim();
-        final String paginaEscrita = campoPagina.getText().toString().trim();
-        final String pagina = paginaEscrita.isEmpty() ? null : normalizar(paginaEscrita);
-        if (!paginaEscrita.isEmpty() && pagina == null) {
-            campoPagina.setError("La dirección no es válida");
-            return;
-        }
-        final String fuente = pagina != null ? pagina : url;
-        final String nombre = escrito.isEmpty() ? nombreDesdeUrl(fuente) : escrito;
+        final String nombre = escrito.isEmpty() ? nombreDesdeUrl(url) : escrito;
+        final String fuente = url;
+        final String video = videoDetectado;
+        final String pais = paisElegido != null ? paisElegido : Paises.deDominio(url);
         cancelarBusqueda();
         findViewById(R.id.btnGuardar).setEnabled(false);
 
@@ -312,14 +342,14 @@ public class AgregarActivity extends AppCompatActivity {
             Sitio existente = id >= 0 ? dao.buscar(id) : null;
             Sitio s = existente != null ? existente : new Sitio();
 
-            String fuenteVieja = s.paginaUrl != null && !s.paginaUrl.isEmpty() ? s.paginaUrl : s.url;
-            boolean urlCambio = fuenteVieja == null || !fuenteVieja.equals(fuente);
+            boolean urlCambio = s.url == null || !s.url.equals(fuente);
             if (s.iconoPropio != null && !s.iconoPropio.equals(propio)) {
                 IconoHelper.borrar(s.iconoPropio);
             }
             s.nombre = nombre;
             s.url = url;
-            s.paginaUrl = pagina;
+            s.videoUrl = video;
+            s.pais = pais;
             s.iconoPropio = propio;
             s.escritorio = escritorio;
             s.pantallaCompleta = pantallaCompleta;
@@ -348,6 +378,7 @@ public class AgregarActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (detector != null) detector.cancelar();
         manejador.removeCallbacks(consultar);
         super.onDestroy();
     }

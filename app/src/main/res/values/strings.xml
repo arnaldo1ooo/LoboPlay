@@ -38,8 +38,13 @@
     <string name="ordenar">Ordenar</string>
     <string name="modo_escritorio">Abrir en modo escritorio</string>
     <string name="pantalla_completa_auto">Reproducir en pantalla completa al abrir</string>
-    <string name="pagina_canal">Página del canal (opcional)</string>
-    <string name="pagina_canal_ayuda">Se usa para buscar el nombre y el icono si la dirección de arriba es solo el video</string>
+    <string name="pais">País</string>
+    <string name="pais_todos">Todos los países</string>
+    <string name="video_detectado">Video detectado</string>
+    <string name="video_ayuda">Se completa solo al escribir la dirección. Si no se encuentra, se abre la página.</string>
+    <string name="video_buscando">Buscando el video de la página…</string>
+    <string name="video_encontrado">Video encontrado</string>
+    <string name="video_no_encontrado">No se encontró un video: se abrirá la página directamente</string>
     <string name="bloquear_anuncios_sitio">Bloquear anuncios en este sitio</string>
     <string name="cursor">Cursor</string>
     <string name="pip_boton">Imagen en imagen</string>

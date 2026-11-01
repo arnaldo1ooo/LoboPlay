@@ -278,17 +278,19 @@ public class NavegadorActivity extends AppCompatActivity {
             manejador.postDelayed(this::buscarReproductor, 1500);
         }
 
+        final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
         if (esFlujoHls(url)) {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
-            prepararFlujo(url, getIntent().getStringExtra(EXTRA_PAGINA));
+            prepararFlujo(url, pagina);
             cargarFlujo();
         } else if (esDailymotion(url)) {
             // Reproductor de Dailymotion: se abre dentro de una pagina propia con el origen del canal.
-            prepararMarco(url, getIntent().getStringExtra(EXTRA_PAGINA));
+            prepararMarco(url, pagina);
             cargarFlujo();
-        } else if (url.contains("desdepylabs.com")) {
+        } else if (pagina != null && !pagina.equals(url)) {
+            // El video es de otro servidor: se pide como si lo llamara la pagina del sitio.
             Map<String, String> cabeceras = new HashMap<>();
-            cabeceras.put("Referer", "https://www.telefuturo.com.py/envivo");
+            cabeceras.put("Referer", pagina);
             web.loadUrl(url, cabeceras);
         } else {
             web.loadUrl(url);

@@ -36,6 +36,7 @@ import py.loboplay.app.data.SitioDao;
 import py.loboplay.app.util.Ajustes;
 import py.loboplay.app.util.Bordes;
 import py.loboplay.app.util.Hilos;
+import py.loboplay.app.util.Paises;
 
 // Pantalla principal: menu con todos los sitios.
 public class MainActivity extends AppCompatActivity implements SitioAdapter.Listener {
@@ -46,6 +47,9 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
     private Chip chipTodos;
     private Chip chipFavoritos;
     private Chip chipRecientes;
+    private ChipGroup chipsPais;
+    private View filaPais;
+    private String paisFiltro; // null = todos los paises
     private View vacio;
     private TextView vacioTitulo;
     private TextView vacioAyuda;
@@ -65,6 +69,13 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         chipTodos = findViewById(R.id.chipTodos);
         chipFavoritos = findViewById(R.id.chipFavoritos);
         chipRecientes = findViewById(R.id.chipRecientes);
+        chipsPais = findViewById(R.id.chipsPais);
+        filaPais = findViewById(R.id.filaPais);
+        chipsPais.setOnCheckedStateChangeListener((grupo, ids) -> {
+            Chip marcado = ids.isEmpty() ? null : (Chip) grupo.findViewById(ids.get(0));
+            paisFiltro = marcado == null ? null : (String) marcado.getTag();
+            filtrar();
+        });
         vacio = findViewById(R.id.vacio);
         vacioTitulo = findViewById(R.id.vacioTitulo);
         vacioAyuda = findViewById(R.id.vacioAyuda);
@@ -80,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
 
         AppDatabase.get(this).sitioDao().todos().observe(this, sitios -> {
             todos = sitios;
+            armarPaises();
             filtrar();
         });
 
@@ -149,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
             salirModoOrdenar();
             return;
         }
-        boolean hayFiltro = !buscar.getText().toString().trim().isEmpty() || !chipTodos.isChecked();
+        boolean hayFiltro = !buscar.getText().toString().trim().isEmpty() || !chipTodos.isChecked() || paisFiltro != null;
         if (hayFiltro) {
             Toast.makeText(this, "Quita la búsqueda y los filtros para ordenar", Toast.LENGTH_LONG).show();
             return;
@@ -178,6 +190,30 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         }));
     }
 
+    // Arma la fila de paises con los que tienen los sitios guardados (solo si hay alguno).
+    private void armarPaises() {
+        java.util.TreeSet<String> codigos = new java.util.TreeSet<>();
+        for (Sitio s : todos) {
+            if (s.pais != null && !s.pais.isEmpty()) codigos.add(s.pais);
+        }
+        if (paisFiltro != null && !codigos.contains(paisFiltro)) paisFiltro = null;
+        chipsPais.removeAllViews();
+        filaPais.setVisibility(codigos.isEmpty() ? View.GONE : View.VISIBLE);
+        if (codigos.isEmpty()) return;
+        chipsPais.addView(crearChipPais(null, getString(R.string.pais_todos)));
+        for (String c : codigos) chipsPais.addView(crearChipPais(c, Paises.etiqueta(c)));
+    }
+
+    private Chip crearChipPais(String codigo, String texto) {
+        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.chip_pais, chipsPais, false);
+        chip.setId(View.generateViewId());
+        chip.setTag(codigo);
+        chip.setText(texto);
+        chip.setCheckable(true);
+        chip.setChecked(java.util.Objects.equals(codigo, paisFiltro));
+        return chip;
+    }
+
     // Muestra solo los sitios que coinciden con la busqueda y el filtro.
     private void filtrar() {
         String q = buscar.getText().toString().trim().toLowerCase(Locale.ROOT);
@@ -197,13 +233,14 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         List<Sitio> visibles = new ArrayList<>();
         for (Sitio s : base) {
             if (soloFavoritos && !s.favorito) continue;
+            if (paisFiltro != null && !paisFiltro.equals(s.pais)) continue;
             boolean coincide = q.isEmpty()
                     || (s.nombre != null && s.nombre.toLowerCase(Locale.ROOT).contains(q))
                     || (s.url != null && s.url.toLowerCase(Locale.ROOT).contains(q));
             if (coincide) visibles.add(s);
         }
 
-        boolean hayFiltro = !q.isEmpty() || soloFavoritos || soloRecientes;
+        boolean hayFiltro = !q.isEmpty() || soloFavoritos || soloRecientes || paisFiltro != null;
         if (modoOrdenar && hayFiltro) salirModoOrdenar();
         adaptador.setDatos(visibles);
 
@@ -238,11 +275,13 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
             }
         }
         Intent i = new Intent(this, NavegadorActivity.class);
-        i.putExtra(NavegadorActivity.EXTRA_URL, sitio.url);
+        // Si se detecto un video se abre directo; si no, la pagina.
+        boolean conVideo = sitio.videoUrl != null && !sitio.videoUrl.trim().isEmpty();
+        i.putExtra(NavegadorActivity.EXTRA_URL, conVideo ? sitio.videoUrl : sitio.url);
         i.putExtra(NavegadorActivity.EXTRA_ESCRITORIO, sitio.escritorio);
         i.putExtra(NavegadorActivity.EXTRA_PANTALLA_COMPLETA, sitio.pantallaCompleta);
         i.putExtra(NavegadorActivity.EXTRA_BLOQUEAR_ANUNCIOS, sitio.bloquearAnuncios);
-        i.putExtra(NavegadorActivity.EXTRA_PAGINA, sitio.paginaUrl);
+        i.putExtra(NavegadorActivity.EXTRA_PAGINA, sitio.url);
         startActivity(i);
     }
 

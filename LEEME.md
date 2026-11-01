@@ -47,10 +47,10 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Los canales precargados vienen con esta opción activada. La opción se guarda también en el respaldo.
 - El reproductor conserva sus botones (silencio, pantalla completa, calidad). La app pasa a horizontal solo al tocar pantalla completa. Atrás sale de la pantalla completa y, estando en el canal, lo cierra.
 - Interruptor por sitio "Bloquear anuncios en este sitio" (activado por defecto; SNT lo trae apagado, porque su página no reproduce si detecta el bloqueador).
-- Campo opcional "Página del canal": si la dirección principal es solo el reproductor (por ejemplo `desdepylabs.com` para Telefuturo), la página del canal se usa para buscar el nombre y el icono.
+- Cada sitio guarda la página (para el nombre y el icono) y, aparte, el video detectado. Si hay video se abre directo; si no, se abre la página.
 
 ## Canales con dirección directa del video (.m3u8)
-- Si la dirección de un sitio termina en `.m3u8`, la app la reproduce con una página propia: sin anuncios, sin la página del canal y con los botones de video del sistema. El campo "Página del canal" sirve de origen (y para el icono y el nombre).
+- Si la dirección del video termina en `.m3u8`, la app la reproduce con una página propia: sin anuncios, sin la página del canal y con los botones de video del sistema. La página del sitio sirve de origen.
 - Usa la librería hls.js (licencia Apache 2.0): si existe `app/src/main/assets/hls.min.js` la usa desde ahí y, si no, la baja de internet (jsDelivr). Si tampoco puede, prueba la reproducción nativa de Android. Si algo falla, el motivo se muestra en la parte de arriba del video.
 - Los reproductores de Dailymotion (como el de Trece) se abren dentro de una página propia con el origen del canal, para que el reproductor los acepte.
 - SNT usa esta forma. Si el canal cambia su dirección de video, edita el sitio y pega la nueva (en Chrome: F12 > Network > filtrar `m3u8`).
@@ -84,3 +84,9 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Agregar sitio: la búsqueda del título e icono ya no deja la pantalla esperando. Tiene tiempo límite, se cancela al guardar y, si no hay nombre, se usa el de la dirección.
 - Agregar sitio: ahora se ve una barra de carga bajo la dirección y un círculo girando sobre el icono mientras se busca el título.
 - Márgenes de las barras del sistema: ahora usa EdgeToEdge de AndroidX (sin métodos obsoletos).
+
+## Países y detección de video
+- Los canales se organizan por país: en el menú hay una fila de banderas (Todos los países, Paraguay, ...) que sale de los países de los sitios guardados. En `canales.json` se pone `"pais": "PY"`.
+- Al agregar un sitio, la app abre la página en un navegador oculto y busca el video (lista `.m3u8`, reproductor incrustado o `<video>`). El campo "Video detectado" está bloqueado y se llena solo; si no se encuentra, el sitio se abre con su página.
+- El país se sugiere por el final de la dirección (`.com.py` = Paraguay) y se puede cambiar.
+- En `canales.json`: `url` es la página del canal y `video` (opcional) el video directo.
