@@ -234,6 +234,11 @@ public final class DetectorVideo {
         return false;
     }
 
+    // Ya termino (con resultado, cancelado o por un fallo al iniciar).
+    public boolean finalizado() {
+        return terminado;
+    }
+
     // Cancela la busqueda sin avisar.
     public void cancelar() {
         if (terminado) return;

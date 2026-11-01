@@ -44,6 +44,7 @@ import py.loboplay.app.data.Sitio;
 import py.loboplay.app.data.SitioDao;
 import py.loboplay.app.util.Bordes;
 import py.loboplay.app.util.DetectorVideo;
+import py.loboplay.app.util.DialogoBusqueda;
 import py.loboplay.app.util.Hilos;
 import py.loboplay.app.util.PaginasVideo;
 import py.loboplay.app.util.Paises;
@@ -83,6 +84,8 @@ public class AgregarActivity extends AppCompatActivity {
     private String paisElegido;
     private boolean paisEditado = false;
     private String videoDetectado;
+    private String ultimaVideo;      // direccion para la que ya se busco el video
+    private androidx.appcompat.app.AlertDialog dialogoBusqueda;
     private DetectorVideo detector;
 
     // Vista previa del video detectado.
@@ -97,7 +100,7 @@ public class AgregarActivity extends AppCompatActivity {
     private List<Paises.Pais> paises;
 
     private final Handler manejador = new Handler(Looper.getMainLooper());
-    private final Runnable consultar = this::consultarPagina;
+    private final Runnable consultar = () -> consultarPagina(false);
     private final Runnable avisoLento = this::avisarBusquedaLenta;
 
     private final ActivityResultLauncher<String> selector = registerForActivityResult(
@@ -152,6 +155,7 @@ public class AgregarActivity extends AppCompatActivity {
                 campoUrl.setError("La dirección no es válida");
                 return;
             }
+            ultimaVideo = pagina;
             buscarVideo(pagina);
         });
         btnSinVideo.setOnClickListener(v -> {
@@ -161,12 +165,12 @@ public class AgregarActivity extends AppCompatActivity {
         campoUrl.setOnFocusChangeListener((v, tieneFoco) -> {
             if (!tieneFoco) {
                 manejador.removeCallbacks(consultar);
-                consultarPagina();
+                consultarPagina(true);
             }
         });
         campoUrl.setOnEditorActionListener((v, accion, evento) -> {
             manejador.removeCallbacks(consultar);
-            consultarPagina();
+            consultarPagina(true);
             return false;
         });
 
@@ -192,16 +196,22 @@ public class AgregarActivity extends AppCompatActivity {
     }
 
     // Busca el titulo y el icono de la pagina para sugerirlos (sin frenar la pantalla).
-    private void consultarPagina() {
+    // conVideo: tambien busca el video (bloquea la pantalla). Se pide al terminar de escribir la
+    // direccion, no mientras se escribe.
+    private void consultarPagina(boolean conVideo) {
         final String url = normalizar(campoUrl.getText().toString());
-        if (url == null || url.equals(ultimaConsulta)) return;
+        if (url == null) return;
+        if (conVideo && !url.equals(ultimaVideo)) {
+            ultimaVideo = url;
+            buscarVideo(url);
+        }
+        if (url.equals(ultimaConsulta)) return;
         ultimaConsulta = url;
         final int mia = ++solicitud;
         estado.setText(R.string.buscando_info);
         mostrarCarga(true);
         manejador.removeCallbacks(avisoLento);
         manejador.postDelayed(avisoLento, AVISO_LENTO_MS);
-        buscarVideo(url);
         Hilos.RED.execute(() -> {
             IconoHelper.Pagina pagina = IconoHelper.leerPagina(url);
             runOnUiThread(() -> {
@@ -230,15 +240,35 @@ public class AgregarActivity extends AppCompatActivity {
         campoPais.setText(codigo == null ? "" : Paises.etiqueta(codigo), false);
     }
 
-    // Busca en segundo plano el video de la pagina; el campo queda bloqueado y se llena solo.
+    private void cerrarDialogoBusqueda() {
+        if (dialogoBusqueda != null) {
+            try {
+                dialogoBusqueda.dismiss();
+            } catch (Exception ignorar) {
+            }
+            dialogoBusqueda = null;
+        }
+    }
+
+    // Busca el video de la pagina; el campo queda bloqueado y se llena solo.
     private void buscarVideo(String pagina) {
         if (detector != null) detector.cancelar();
         cerrarPrueba();
+        cerrarDialogoBusqueda();
+        final String anterior = videoDetectado;
         ponerVideo(null, R.string.video_buscando);
+        // La pantalla queda bloqueada mientras se busca; Cancelar deja lo que habia antes.
+        dialogoBusqueda = DialogoBusqueda.mostrar(this, R.string.video_buscando, () -> {
+            if (detector != null) detector.cancelar();
+            detector = null;
+            ponerVideo(anterior, R.string.video_cancelado);
+        });
         detector = DetectorVideo.buscar(this, pagina, video -> {
+            cerrarDialogoBusqueda();
             if (isFinishing() || isDestroyed()) return;
             ponerVideo(video, video == null ? R.string.video_no_encontrado : R.string.video_encontrado);
         });
+        if (detector.finalizado()) detector = null;
     }
 
     // Deja el video en el campo bloqueado y muestra u oculta el boton de prueba.
@@ -392,6 +422,7 @@ public class AgregarActivity extends AppCompatActivity {
     // Completa el formulario con un sitio existente.
     private void rellenar(Sitio s) {
         ultimaConsulta = s.url;
+        ultimaVideo = s.url;
         campoNombre.setText(s.nombre);
         nombreEditado = true;
         campoUrl.setText(s.url);
@@ -522,6 +553,7 @@ public class AgregarActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (detector != null) detector.cancelar();
+        cerrarDialogoBusqueda();
         cerrarPrueba();
         manejador.removeCallbacks(consultar);
         super.onDestroy();

@@ -52,6 +52,7 @@ import py.loboplay.app.R;
 import py.loboplay.app.data.AppDatabase;
 import py.loboplay.app.data.Sitio;
 import py.loboplay.app.util.DetectorVideo;
+import py.loboplay.app.util.DialogoBusqueda;
 import py.loboplay.app.util.Hilos;
 import py.loboplay.app.util.Ajustes;
 import py.loboplay.app.util.PaginasVideo;
@@ -345,13 +346,30 @@ public class NavegadorActivity extends AppCompatActivity {
         avisoFallo.show();
     }
 
+    private androidx.appcompat.app.AlertDialog dialogoBusqueda;
+
+    private void cerrarDialogoBusqueda() {
+        if (dialogoBusqueda != null) {
+            try {
+                dialogoBusqueda.dismiss();
+            } catch (Exception ignorar) {
+            }
+            dialogoBusqueda = null;
+        }
+    }
+
     // Busca otra vez el video en la pagina del sitio y, si cambio, lo guarda y lo abre.
     private void volverADetectar() {
         if (detector != null || paginaSitio == null) return;
         if (avisoFallo != null) avisoFallo.dismiss();
-        Toast.makeText(this, R.string.video_rebuscando, Toast.LENGTH_SHORT).show();
+        // La pantalla queda bloqueada mientras se busca; Cancelar deja todo como estaba.
+        dialogoBusqueda = DialogoBusqueda.mostrar(this, R.string.video_rebuscando, () -> {
+            if (detector != null) detector.cancelar();
+            detector = null;
+        });
         detector = DetectorVideo.buscar(this, paginaSitio, video -> {
             detector = null;
+            cerrarDialogoBusqueda();
             if (isFinishing() || isDestroyed()) return;
             if (video == null) {
                 Toast.makeText(this, R.string.video_nuevo_no_hay, Toast.LENGTH_LONG).show();
@@ -377,6 +395,7 @@ public class NavegadorActivity extends AppCompatActivity {
                 finish();
             }
         });
+        if (detector.finalizado()) detector = null;
     }
 
     // ---------- flujo directo (.m3u8) ----------
@@ -690,6 +709,7 @@ public class NavegadorActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (detector != null) detector.cancelar();
+        cerrarDialogoBusqueda();
         manejador.removeCallbacksAndMessages(null);
         if (web != null) {
             ((ViewGroup) web.getParent()).removeView(web);
