@@ -9,7 +9,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.annotation.SuppressLint;
 import android.view.View;
+import android.view.ViewGroup;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
+import java.util.HashMap;
+import java.util.Map;
 import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -37,6 +45,7 @@ import py.loboplay.app.data.SitioDao;
 import py.loboplay.app.util.Bordes;
 import py.loboplay.app.util.DetectorVideo;
 import py.loboplay.app.util.Hilos;
+import py.loboplay.app.util.PaginasVideo;
 import py.loboplay.app.util.Paises;
 
 // Formulario para agregar o editar un sitio.
@@ -75,6 +84,16 @@ public class AgregarActivity extends AppCompatActivity {
     private boolean paisEditado = false;
     private String videoDetectado;
     private DetectorVideo detector;
+
+    // Vista previa del video detectado.
+    private View bloquePrueba;
+    private android.widget.FrameLayout cajaPrueba;
+    private TextView estadoPrueba;
+    private View btnSinVideo;
+    private WebView webPrueba;
+    private int pruebaNumero = 0;
+    private static final long PRUEBA_LIMITE_MS = 20000;
+    private final Runnable pruebaVencida = this::pruebaSinConfirmar;
     private List<Paises.Pais> paises;
 
     private final Handler manejador = new Handler(Looper.getMainLooper());
@@ -122,6 +141,15 @@ public class AgregarActivity extends AppCompatActivity {
             }
         });
         prepararPaises();
+        bloquePrueba = findViewById(R.id.bloquePrueba);
+        cajaPrueba = findViewById(R.id.cajaPrueba);
+        estadoPrueba = findViewById(R.id.estadoPrueba);
+        btnSinVideo = findViewById(R.id.btnSinVideo);
+        findViewById(R.id.btnProbar).setOnClickListener(v -> probarVideo());
+        btnSinVideo.setOnClickListener(v -> {
+            cerrarPrueba();
+            ponerVideo(null, R.string.video_no_encontrado);
+        });
         campoUrl.setOnFocusChangeListener((v, tieneFoco) -> {
             if (!tieneFoco) {
                 manejador.removeCallbacks(consultar);
@@ -197,15 +225,119 @@ public class AgregarActivity extends AppCompatActivity {
     // Busca en segundo plano el video de la pagina; el campo queda bloqueado y se llena solo.
     private void buscarVideo(String pagina) {
         if (detector != null) detector.cancelar();
-        videoDetectado = null;
-        campoVideo.setText("");
-        campoVideo.setHint(R.string.video_buscando);
+        cerrarPrueba();
+        ponerVideo(null, R.string.video_buscando);
         detector = DetectorVideo.buscar(this, pagina, video -> {
             if (isFinishing() || isDestroyed()) return;
-            videoDetectado = video;
-            campoVideo.setText(video == null ? "" : video);
-            campoVideo.setHint(video == null ? R.string.video_no_encontrado : R.string.video_encontrado);
+            ponerVideo(video, video == null ? R.string.video_no_encontrado : R.string.video_encontrado);
         });
+    }
+
+    // Deja el video en el campo bloqueado y muestra u oculta el boton de prueba.
+    private void ponerVideo(String video, int mensaje) {
+        videoDetectado = video;
+        campoVideo.setText(video == null ? "" : video);
+        campoVideo.setHint(mensaje);
+        bloquePrueba.setVisibility(video == null ? View.GONE : View.VISIBLE);
+    }
+
+    // Reproduce el video detectado, sin sonido, en un recuadro del formulario.
+    @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
+    private void probarVideo() {
+        final String video = videoDetectado;
+        if (video == null) return;
+        cerrarPrueba();
+        final int mia = ++pruebaNumero;
+        String pagina = normalizar(campoUrl.getText().toString());
+        estadoPrueba.setVisibility(View.VISIBLE);
+        estadoPrueba.setText(R.string.prueba_cargando);
+        btnSinVideo.setVisibility(View.GONE);
+        cajaPrueba.setVisibility(View.VISIBLE);
+        cajaPrueba.getLayoutParams().height = (int) (getResources().getDisplayMetrics().widthPixels * 0.9f * 9f / 16f);
+
+        webPrueba = new WebView(this);
+        cajaPrueba.addView(webPrueba, new ViewGroup.LayoutParams(-1, -1));
+        WebSettings ws = webPrueba.getSettings();
+        ws.setJavaScriptEnabled(true);
+        ws.setDomStorageEnabled(true);
+        ws.setMediaPlaybackRequiresUserGesture(false);
+        webPrueba.setWebViewClient(new WebViewClient());
+        webPrueba.addJavascriptInterface(new Object() {
+            @JavascriptInterface
+            public void ok(String t) {
+                runOnUiThread(() -> pruebaListo(mia, true, null));
+            }
+
+            @JavascriptInterface
+            public void fallo(String t) {
+                runOnUiThread(() -> pruebaListo(mia, false, t));
+            }
+        }, "lp");
+
+        String base = PaginasVideo.baseDe(video, pagina);
+        if (PaginasVideo.esFlujoHls(video)) {
+            webPrueba.loadDataWithBaseURL(base, PaginasVideo.flujo(this, video, true), "text/html", "utf-8", null);
+        } else if (PaginasVideo.esDailymotion(video)) {
+            webPrueba.loadDataWithBaseURL(base, PaginasVideo.marco(video, true), "text/html", "utf-8", null);
+        } else {
+            Map<String, String> cabeceras = new HashMap<>();
+            if (pagina != null) cabeceras.put("Referer", pagina);
+            webPrueba.loadUrl(video, cabeceras);
+            sondearVideoPropio(mia);
+        }
+        manejador.postDelayed(pruebaVencida, PRUEBA_LIMITE_MS);
+    }
+
+    // Para paginas de reproductor: mira si algun <video> de la pagina ya avanza.
+    private void sondearVideoPropio(int mia) {
+        manejador.postDelayed(() -> {
+            if (mia != pruebaNumero || webPrueba == null) return;
+            webPrueba.evaluateJavascript("(function(){var l=document.querySelectorAll('video');"
+                    + "for(var i=0;i<l.length;i++){if(l[i].currentTime>0&&!l[i].paused)return 1;}return 0;})()", valor -> {
+                if (mia != pruebaNumero) return;
+                if ("1".equals(valor)) pruebaListo(mia, true, null);
+                else sondearVideoPropio(mia);
+            });
+        }, 1500);
+    }
+
+    private void pruebaListo(int mia, boolean bien, String error) {
+        if (mia != pruebaNumero || estadoPrueba == null) return;
+        manejador.removeCallbacks(pruebaVencida);
+        if (bien) {
+            estadoPrueba.setText(R.string.prueba_ok);
+            btnSinVideo.setVisibility(View.GONE);
+        } else {
+            estadoPrueba.setText(getString(R.string.prueba_fallo) + (error == null ? "" : error));
+            btnSinVideo.setVisibility(View.VISIBLE);
+        }
+    }
+
+    // Paso el tiempo sin que el video avance (puede ser un marco que no se puede leer desde afuera).
+    private void pruebaSinConfirmar() {
+        if (webPrueba == null) return;
+        if (estadoPrueba.getText().toString().equals(getString(R.string.prueba_ok))) return;
+        estadoPrueba.setText(R.string.prueba_dudosa);
+        btnSinVideo.setVisibility(View.VISIBLE);
+    }
+
+    // Detiene y quita la vista previa.
+    private void cerrarPrueba() {
+        pruebaNumero++;
+        manejador.removeCallbacks(pruebaVencida);
+        if (webPrueba != null) {
+            try {
+                webPrueba.stopLoading();
+                webPrueba.loadUrl("about:blank");
+                cajaPrueba.removeView(webPrueba);
+                webPrueba.destroy();
+            } catch (Exception ignorar) {
+            }
+            webPrueba = null;
+        }
+        cajaPrueba.setVisibility(View.GONE);
+        estadoPrueba.setVisibility(View.GONE);
+        btnSinVideo.setVisibility(View.GONE);
     }
 
     // Si la pagina tarda, avisa que se puede guardar igual.
@@ -252,8 +384,7 @@ public class AgregarActivity extends AppCompatActivity {
         campoNombre.setText(s.nombre);
         nombreEditado = true;
         campoUrl.setText(s.url);
-        videoDetectado = s.videoUrl;
-        campoVideo.setText(s.videoUrl == null ? "" : s.videoUrl);
+        ponerVideo(s.videoUrl, s.videoUrl == null ? R.string.video_no_encontrado : R.string.video_encontrado);
         paisEditado = s.pais != null;
         ponerPais(s.pais);
         switchEscritorio.setChecked(s.escritorio);
@@ -379,6 +510,7 @@ public class AgregarActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         if (detector != null) detector.cancelar();
+        cerrarPrueba();
         manejador.removeCallbacks(consultar);
         super.onDestroy();
     }

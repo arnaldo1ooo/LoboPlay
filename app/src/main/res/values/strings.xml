@@ -43,6 +43,13 @@
     <string name="video_detectado">Video detectado</string>
     <string name="video_ayuda">Se completa solo al escribir la dirección. Si no se encuentra, se abre la página.</string>
     <string name="video_buscando">Buscando el video de la página…</string>
+    <string name="probar_video">Probar video</string>
+    <string name="no_usar_video">No usar este video (abrir la página)</string>
+    <string name="no_usar_video">No usar este video (abrir la página)</string>
+    <string name="prueba_cargando">Cargando la vista previa… (sin sonido)</string>
+    <string name="prueba_ok">✓ El video se reproduce</string>
+    <string name="prueba_dudosa">No se pudo confirmar. Mira la imagen: si se ve el video, guárdalo; si no, usa la página.</string>
+    <string name="prueba_fallo">✗ No se pudo reproducir: </string>
     <string name="video_encontrado">Video encontrado</string>
     <string name="video_no_encontrado">No se encontró un video: se abrirá la página directamente</string>
     <string name="bloquear_anuncios_sitio">Bloquear anuncios en este sitio</string>

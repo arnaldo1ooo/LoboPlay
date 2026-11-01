@@ -90,3 +90,4 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Al agregar un sitio, la app abre la página en un navegador oculto y busca el video (lista `.m3u8`, reproductor incrustado o `<video>`). El campo "Video detectado" está bloqueado y se llena solo; si no se encuentra, el sitio se abre con su página.
 - El país se sugiere por el final de la dirección (`.com.py` = Paraguay) y se puede cambiar.
 - En `canales.json`: `url` es la página del canal y `video` (opcional) el video directo.
+- En "Agregar sitio", el botón "Probar video" reproduce el video detectado (sin sonido) en un recuadro. Si no se reproduce, "No usar este video" lo quita y el sitio se abre con su página.

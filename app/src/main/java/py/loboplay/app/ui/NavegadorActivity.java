@@ -42,13 +42,12 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import py.loboplay.app.R;
 import py.loboplay.app.util.Ajustes;
+import py.loboplay.app.util.PaginasVideo;
 import py.loboplay.app.util.BloqueadorAnuncios;
 import py.loboplay.app.util.Bordes;
 
@@ -279,11 +278,11 @@ public class NavegadorActivity extends AppCompatActivity {
         }
 
         final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
-        if (esFlujoHls(url)) {
+        if (PaginasVideo.esFlujoHls(url)) {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
             prepararFlujo(url, pagina);
             cargarFlujo();
-        } else if (esDailymotion(url)) {
+        } else if (PaginasVideo.esDailymotion(url)) {
             // Reproductor de Dailymotion: se abre dentro de una pagina propia con el origen del canal.
             prepararMarco(url, pagina);
             cargarFlujo();
@@ -300,86 +299,19 @@ public class NavegadorActivity extends AppCompatActivity {
 
     // ---------- flujo directo (.m3u8) ----------
 
-    // Dice si la direccion es un flujo HLS (lista .m3u8).
-    private static boolean esFlujoHls(String url) {
-        String ruta = Uri.parse(url).getPath();
-        return ruta != null && ruta.toLowerCase(java.util.Locale.ROOT).endsWith(".m3u8");
-    }
-
-    // Dice si la direccion es un reproductor de Dailymotion.
-    private static boolean esDailymotion(String url) {
-        String host = Uri.parse(url).getHost();
-        return host != null && (host.equals("dailymotion.com") || host.endsWith(".dailymotion.com"));
-    }
-
-    // Origen que se le muestra al servidor del video: la web del canal, o el propio servidor si no hay.
-    private static String baseDe(String url, String pagina) {
-        return pagina != null && pagina.toLowerCase(java.util.Locale.ROOT).matches("^https?://.+")
-                ? pagina : Uri.parse(url).getScheme() + "://" + Uri.parse(url).getHost() + "/";
-    }
-
-    // Pagina propia con el reproductor ajeno dentro de un marco, como lo ve la web del canal.
+    // Prepara la pagina propia del reproductor (flujo .m3u8 o marco de Dailymotion).
     private void prepararMarco(String reproductor, String pagina) {
-        baseFlujo = baseDe(reproductor, pagina);
-        String src = reproductor.contains("autoplay=") ? reproductor
-                : reproductor + (reproductor.contains("?") ? "&" : "?") + "autoplay=1";
-        htmlFlujo = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
-                + "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}"
-                + "iframe{border:0;width:100vw;height:100vh;display:block}</style></head><body>"
-                + "<iframe src=" + JSONObject.quote(src).replace("\"", "'") + " allow='autoplay; fullscreen; "
-                + "picture-in-picture; encrypted-media; web-share' allowfullscreen "
-                + "referrerpolicy='strict-origin-when-cross-origin'></iframe></body></html>";
+        baseFlujo = PaginasVideo.baseDe(reproductor, pagina);
+        htmlFlujo = PaginasVideo.marco(reproductor, false);
     }
 
-    // Arma la pagina que reproduce el flujo. Usa hls.js si esta en assets/hls.min.js
-    // y, si no, la reproduccion nativa de Android. La pagina se carga con el origen de
-    // la web del canal, por si el servidor del video lo revisa.
     private void prepararFlujo(String flujo, String pagina) {
-        baseFlujo = baseDe(flujo, pagina);
-        String hls = leerAssetOpcional("hls.min.js").replace("</script", "<\\/script");
-        // Sin hls.min.js en assets, se baja de internet (la version 1.5 mas reciente).
-        String libreria = hls.trim().isEmpty()
-                ? "<script src='https://cdn.jsdelivr.net/npm/hls.js@1.5/dist/hls.min.js'></script>"
-                : "<script>" + hls + "</script>";
-        htmlFlujo = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
-                + "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}"
-                + "video{width:100vw;height:100vh;background:#000;object-fit:contain}"
-                + "#e{position:fixed;left:0;right:0;top:0;padding:8px;text-align:center;z-index:9;"
-                + "color:#9fb6d6;font:13px sans-serif;pointer-events:none}</style></head><body>"
-                + "<video id='v' controls autoplay playsinline></video><div id='e'></div>"
-                + libreria
-                + "<script>(function(){var v=document.getElementById('v'),e=document.getElementById('e'),"
-                + "src=" + JSONObject.quote(flujo) + ";"
-                + "function msg(t){e.textContent=t;}"
-                + "function intentar(){var p=v.play();if(p&&p.catch)p.catch(function(){});}"
-                + "function nativo(){v.src=src;intentar();}"
-                + "v.addEventListener('playing',function(){msg('');});"
-                + "v.addEventListener('error',function(){msg('No se pudo reproducir (video '+(v.error?v.error.code:'?')+')');});"
-                + "if(window.Hls&&Hls.isSupported()){var h=new Hls();h.loadSource(src);h.attachMedia(v);"
-                + "h.on(Hls.Events.MANIFEST_PARSED,intentar);"
-                + "h.on(Hls.Events.ERROR,function(ev,d){msg('Error: '+d.details+(d.response?' ('+d.response.code+')':''));"
-                + "if(!d.fatal)return;"
-                + "if(d.type===Hls.ErrorTypes.NETWORK_ERROR)setTimeout(function(){h.startLoad();},2000);"
-                + "else if(d.type===Hls.ErrorTypes.MEDIA_ERROR)h.recoverMediaError();"
-                + "else{h.destroy();nativo();}});}"
-                + "else{msg('Sin hls.js: usando reproduccion nativa');nativo();}})();</script></body></html>";
+        baseFlujo = PaginasVideo.baseDe(flujo, pagina);
+        htmlFlujo = PaginasVideo.flujo(this, flujo, false);
     }
 
     private void cargarFlujo() {
         web.loadDataWithBaseURL(baseFlujo, htmlFlujo, "text/html", "utf-8", null);
-    }
-
-    // Lee un archivo de assets si existe (si no, devuelve texto vacio).
-    private String leerAssetOpcional(String nombre) {
-        try (InputStream in = getAssets().open(nombre)) {
-            ByteArrayOutputStream salida = new ByteArrayOutputStream();
-            byte[] buffer = new byte[8192];
-            int n;
-            while ((n = in.read(buffer)) > 0) salida.write(buffer, 0, n);
-            return salida.toString("UTF-8");
-        } catch (Exception e) {
-            return "";
-        }
     }
 
     // ---------- pantalla completa automatica ----------
