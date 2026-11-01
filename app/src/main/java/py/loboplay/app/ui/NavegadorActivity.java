@@ -110,6 +110,12 @@ public class NavegadorActivity extends AppCompatActivity {
 
     private static final int MAX_AJUSTES = 25;   // uno por segundo
 
+    // Pide al reproductor su pantalla completa (la misma que el boton del reproductor).
+    private static final String JS_PANTALLA = "(function(){var v=document.querySelector('video');if(!v)return 'no';"
+            + "var t=v.closest('[class*=player],[id*=player]')||v;"
+            + "try{var f=t.requestFullscreen||t.webkitRequestFullscreen;var p=f.call(t);"
+            + "if(p&&p.catch)p.catch(function(){});}catch(e){return 'no';}return 'ok';})()";
+
     private static final String AGENTE_ESCRITORIO =
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -127,6 +133,11 @@ public class NavegadorActivity extends AppCompatActivity {
     private String paginaSitio;
     private DetectorVideo detector;
     private Snackbar avisoFallo;
+    // Barra superior: en los sitios con video se esconde sola y vuelve al tocar el borde de arriba
+    // o con la flecha arriba del control remoto.
+    private boolean barraAutomatica;
+    private boolean barraOculta;
+    private final Runnable ocultarBarra = this::ocultarBarraSola;
     private boolean ajustarVideo;   // el video es un reproductor de otro servidor que hay que ajustar
     private String htmlFlujo;   // pagina propia que reproduce un flujo .m3u8 directo
     private String baseFlujo;
@@ -273,6 +284,13 @@ public class NavegadorActivity extends AppCompatActivity {
         if (sitioId >= 0 && pagina != null && !pagina.equals(url)) {
             videoActual = url;
             paginaSitio = pagina;
+            barraAutomatica = true;
+            // En TV, el canal abre limpio: sin barra ni barras del sistema, y se pide la pantalla completa.
+            programarOcultarBarra(esTv ? 1500 : 4000);
+            if (esTv) {
+                barrasDelSistema(false);
+                manejador.postDelayed(() -> pantallaCompletaTv(0), 3500);
+            }
             View boton = findViewById(R.id.btnRedetectar);
             boton.setVisibility(View.VISIBLE);
             boton.setOnClickListener(v -> volverADetectar());
@@ -314,6 +332,58 @@ public class NavegadorActivity extends AppCompatActivity {
         web.requestFocus();
     }
 
+    // ---------- barra superior que se esconde ----------
+
+    private void programarOcultarBarra(long ms) {
+        if (!barraAutomatica) return;
+        manejador.removeCallbacks(ocultarBarra);
+        manejador.postDelayed(ocultarBarra, ms);
+    }
+
+    private void ocultarBarraSola() {
+        if (!barraAutomatica || isFinishing() || isDestroyed()) return;
+        // Si se esta usando (foco en la barra) o hay un video a pantalla completa, espera.
+        if (barra.hasFocus() || vistaCompleta != null) {
+            programarOcultarBarra(4000);
+            return;
+        }
+        barraOculta = true;
+        barra.setVisibility(View.GONE);
+    }
+
+    private void mostrarBarra() {
+        barraOculta = false;
+        barra.setVisibility(View.VISIBLE);
+        programarOcultarBarra(5000);
+    }
+
+    // Tocar el borde de arriba vuelve a mostrar la barra; cualquier otro toque reinicia la espera.
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN && barraAutomatica && vistaCompleta == null && !enPip()) {
+            if (barraOculta) {
+                if (ev.getY() < 64 * getResources().getDisplayMetrics().density) {
+                    mostrarBarra();
+                    return true;
+                }
+            } else {
+                programarOcultarBarra(5000);
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    // ---------- pantalla completa automatica en TV ----------
+
+    // Reintenta unas veces (el video tarda en estar listo); se detiene si ya esta en pantalla completa.
+    private void pantallaCompletaTv(int intento) {
+        if (isFinishing() || isDestroyed() || vistaCompleta != null || intento >= 5) return;
+        web.evaluateJavascript(JS_PANTALLA, valor -> {
+            if (vistaCompleta != null) return;
+            manejador.postDelayed(() -> pantallaCompletaTv(intento + 1), 2000);
+        });
+    }
+
     // ---------- ajuste del reproductor ----------
 
     // Despues de cargar, prueba una vez por segundo hasta que el reproductor quede ajustado.
@@ -336,6 +406,7 @@ public class NavegadorActivity extends AppCompatActivity {
     private void avisarFallo() {
         if (videoActual == null || isFinishing() || isDestroyed()) return;
         if (avisoFallo != null && avisoFallo.isShown()) return;
+        mostrarBarra();
         avisoFallo = Snackbar.make(contenedor, R.string.video_fallo, Snackbar.LENGTH_INDEFINITE)
                 .setAction(R.string.redetectar_video, v -> volverADetectar());
         avisoFallo.show();
@@ -369,6 +440,8 @@ public class NavegadorActivity extends AppCompatActivity {
             if (video == null) {
                 Toast.makeText(this, R.string.video_nuevo_no_hay, Toast.LENGTH_LONG).show();
                 htmlFlujo = null;
+                barraAutomatica = false;
+                mostrarBarra();
                 web.loadUrl(paginaSitio);
             } else if (video.equals(videoActual)) {
                 Toast.makeText(this, R.string.video_mismo, Toast.LENGTH_SHORT).show();
@@ -460,7 +533,7 @@ public class NavegadorActivity extends AppCompatActivity {
     @Override
     public void onPictureInPictureModeChanged(boolean enPip, Configuration config) {
         super.onPictureInPictureModeChanged(enPip, config);
-        if (barra != null) barra.setVisibility(enPip ? View.GONE : View.VISIBLE);
+        if (barra != null) barra.setVisibility(enPip || barraOculta ? View.GONE : View.VISIBLE);
         if (cursor != null) cursor.setVisibility(enPip ? View.GONE : (cursorActivo ? View.VISIBLE : View.GONE));
     }
 
@@ -504,6 +577,14 @@ public class NavegadorActivity extends AppCompatActivity {
     // Maneja las flechas y OK del control remoto cuando el cursor esta activo.
     @Override
     public boolean dispatchKeyEvent(KeyEvent ev) {
+        if (ev.getAction() == KeyEvent.ACTION_DOWN && vistaCompleta == null && !enPip()) {
+            if (barraOculta && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && !cursorActivo) {
+                mostrarBarra();
+                findViewById(R.id.btnAtras).requestFocus();
+                return true;
+            }
+            if (!barraOculta) programarOcultarBarra(5000);
+        }
         if (cursor != null && cursorActivo && vistaCompleta == null && !enPip()) {
             int tecla = ev.getKeyCode();
             boolean flecha = tecla == KeyEvent.KEYCODE_DPAD_UP || tecla == KeyEvent.KEYCODE_DPAD_DOWN
@@ -539,6 +620,7 @@ public class NavegadorActivity extends AppCompatActivity {
                 // Arriba del todo: pasa el foco a la barra superior.
                 cursorActivo = false;
                 aplicarCursor();
+                mostrarBarra();
                 btnCursor.requestFocus();
             }
             return;
