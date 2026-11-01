@@ -43,6 +43,11 @@
     <string name="video_detectado">Video detectado</string>
     <string name="video_ayuda">Se completa solo al escribir la dirección. Si no se encuentra, se abre la página.</string>
     <string name="video_buscando">Buscando el video de la página…</string>
+    <string name="redetectar_video">Volver a detectar video</string>
+    <string name="video_fallo">No se pudo reproducir el video</string>
+    <string name="video_rebuscando">Buscando el video de nuevo…</string>
+    <string name="video_mismo">El video sigue siendo el mismo</string>
+    <string name="video_nuevo_no_hay">No se encontró un video: se abre la página</string>
     <string name="probar_video">Probar video</string>
     <string name="no_usar_video">No usar este video (abrir la página)</string>
     <string name="prueba_cargando">Cargando la vista previa… (sin sonido)</string>

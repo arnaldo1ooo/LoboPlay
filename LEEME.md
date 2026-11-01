@@ -91,3 +91,4 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - El país se sugiere por el final de la dirección (`.com.py` = Paraguay) y se puede cambiar.
 - En `canales.json`: `url` es la página del canal y `video` (opcional) el video directo.
 - En "Agregar sitio", el botón "Probar video" reproduce el video detectado (sin sonido) en un recuadro. Si no se reproduce, "No usar este video" lo quita y el sitio se abre con su página.
+- Si el video falla o cambió, el botón de lupa de la barra del navegador (y el aviso "No se pudo reproducir el video") y el botón "Volver a detectar video" de la pantalla de edición vuelven a buscarlo en la página; si hay uno nuevo, se guarda y se abre.

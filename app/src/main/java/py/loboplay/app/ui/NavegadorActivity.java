@@ -21,6 +21,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -45,7 +46,13 @@ import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import py.loboplay.app.R;
+import py.loboplay.app.data.AppDatabase;
+import py.loboplay.app.data.Sitio;
+import py.loboplay.app.util.DetectorVideo;
+import py.loboplay.app.util.Hilos;
 import py.loboplay.app.util.Ajustes;
 import py.loboplay.app.util.PaginasVideo;
 import py.loboplay.app.util.BloqueadorAnuncios;
@@ -59,6 +66,7 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_PANTALLA_COMPLETA = "pantallaCompleta";
     public static final String EXTRA_BLOQUEAR_ANUNCIOS = "bloquearAnuncios";
     public static final String EXTRA_PAGINA = "pagina";
+    public static final String EXTRA_SITIO_ID = "sitioId";
 
     // Codigo comun: encuentra el reproductor (un video con tamano, o si no un marco grande).
     // lpCaja devuelve el contenedor del video que incluye sus botones (silencio, pantalla completa...).
@@ -123,6 +131,13 @@ public class NavegadorActivity extends AppCompatActivity {
     private WebView web;
     private ProgressBar progreso;
     private View portada;
+
+    // Video guardado del sitio: si falla se puede volver a detectar.
+    private long sitioId = -1;
+    private String videoActual;
+    private String paginaSitio;
+    private DetectorVideo detector;
+    private Snackbar avisoFallo;
     private String htmlFlujo;   // pagina propia que reproduce un flujo .m3u8 directo
     private String baseFlujo;
     private View vistaCompleta;
@@ -278,9 +293,31 @@ public class NavegadorActivity extends AppCompatActivity {
         }
 
         final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
+        sitioId = getIntent().getLongExtra(EXTRA_SITIO_ID, -1);
+        if (sitioId >= 0 && pagina != null && !pagina.equals(url)) {
+            videoActual = url;
+            paginaSitio = pagina;
+            View boton = findViewById(R.id.btnRedetectar);
+            boton.setVisibility(View.VISIBLE);
+            boton.setOnClickListener(v -> volverADetectar());
+        }
         if (PaginasVideo.esFlujoHls(url)) {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
             prepararFlujo(url, pagina);
+            // La pagina del reproductor avisa si el video arranca o falla.
+            web.addJavascriptInterface(new Object() {
+                @JavascriptInterface
+                public void ok(String t) {
+                    runOnUiThread(() -> {
+                        if (avisoFallo != null) avisoFallo.dismiss();
+                    });
+                }
+
+                @JavascriptInterface
+                public void fallo(String t) {
+                    runOnUiThread(() -> avisarFallo());
+                }
+            }, "lp");
             cargarFlujo();
         } else if (PaginasVideo.esDailymotion(url)) {
             // Reproductor de Dailymotion: se abre dentro de una pagina propia con el origen del canal.
@@ -295,6 +332,51 @@ public class NavegadorActivity extends AppCompatActivity {
             web.loadUrl(url);
         }
         web.requestFocus();
+    }
+
+    // ---------- video que cambio o no carga ----------
+
+    // Avisa que el video no se pudo reproducir y ofrece buscarlo de nuevo.
+    private void avisarFallo() {
+        if (videoActual == null || isFinishing() || isDestroyed()) return;
+        if (avisoFallo != null && avisoFallo.isShown()) return;
+        avisoFallo = Snackbar.make(contenedor, R.string.video_fallo, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.redetectar_video, v -> volverADetectar());
+        avisoFallo.show();
+    }
+
+    // Busca otra vez el video en la pagina del sitio y, si cambio, lo guarda y lo abre.
+    private void volverADetectar() {
+        if (detector != null || paginaSitio == null) return;
+        if (avisoFallo != null) avisoFallo.dismiss();
+        Toast.makeText(this, R.string.video_rebuscando, Toast.LENGTH_SHORT).show();
+        detector = DetectorVideo.buscar(this, paginaSitio, video -> {
+            detector = null;
+            if (isFinishing() || isDestroyed()) return;
+            if (video == null) {
+                Toast.makeText(this, R.string.video_nuevo_no_hay, Toast.LENGTH_LONG).show();
+                htmlFlujo = null;
+                web.loadUrl(paginaSitio);
+            } else if (video.equals(videoActual)) {
+                Toast.makeText(this, R.string.video_mismo, Toast.LENGTH_SHORT).show();
+                if (htmlFlujo != null) cargarFlujo();
+                else web.reload();
+            } else {
+                final long id = sitioId;
+                final Context app = getApplicationContext();
+                Hilos.IO.execute(() -> {
+                    Sitio s = AppDatabase.get(app).sitioDao().buscar(id);
+                    if (s != null) {
+                        s.videoUrl = video;
+                        AppDatabase.get(app).sitioDao().actualizar(s);
+                    }
+                });
+                android.content.Intent nuevo = new android.content.Intent(getIntent());
+                nuevo.putExtra(EXTRA_URL, video);
+                startActivity(nuevo);
+                finish();
+            }
+        });
     }
 
     // ---------- flujo directo (.m3u8) ----------
@@ -607,6 +689,7 @@ public class NavegadorActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (detector != null) detector.cancelar();
         manejador.removeCallbacksAndMessages(null);
         if (web != null) {
             ((ViewGroup) web.getParent()).removeView(web);

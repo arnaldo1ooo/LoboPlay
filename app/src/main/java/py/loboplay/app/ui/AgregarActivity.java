@@ -146,6 +146,14 @@ public class AgregarActivity extends AppCompatActivity {
         estadoPrueba = findViewById(R.id.estadoPrueba);
         btnSinVideo = findViewById(R.id.btnSinVideo);
         findViewById(R.id.btnProbar).setOnClickListener(v -> probarVideo());
+        findViewById(R.id.btnRedetectar).setOnClickListener(v -> {
+            String pagina = normalizar(campoUrl.getText().toString());
+            if (pagina == null) {
+                campoUrl.setError("La dirección no es válida");
+                return;
+            }
+            buscarVideo(pagina);
+        });
         btnSinVideo.setOnClickListener(v -> {
             cerrarPrueba();
             ponerVideo(null, R.string.video_no_encontrado);
