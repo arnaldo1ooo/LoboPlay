@@ -535,6 +535,7 @@ public class NavegadorActivity extends AppCompatActivity {
         super.onPictureInPictureModeChanged(enPip, config);
         if (barra != null) barra.setVisibility(enPip || barraOculta ? View.GONE : View.VISIBLE);
         if (cursor != null) cursor.setVisibility(enPip ? View.GONE : (cursorActivo ? View.VISIBLE : View.GONE));
+        if (!enPip) despertarCursor();
     }
 
     private boolean enPip() {
@@ -572,6 +573,21 @@ public class NavegadorActivity extends AppCompatActivity {
     private void aplicarCursor() {
         if (cursor != null) cursor.setVisibility(cursorActivo ? View.VISIBLE : View.GONE);
         btnCursor.setSelected(cursorActivo);
+        manejador.removeCallbacks(esconderCursor);
+        if (cursorActivo) manejador.postDelayed(esconderCursor, CURSOR_ESPERA_MS);
+    }
+
+    // El cursor se ve unos segundos y se esconde; sigue activo y reaparece al apretar cualquier flecha u OK.
+    private final Runnable esconderCursor = () -> {
+        if (cursor != null && cursorActivo) cursor.setVisibility(View.INVISIBLE);
+    };
+    private static final long CURSOR_ESPERA_MS = 4000;
+
+    private void despertarCursor() {
+        if (cursor == null || !cursorActivo) return;
+        cursor.setVisibility(View.VISIBLE);
+        manejador.removeCallbacks(esconderCursor);
+        manejador.postDelayed(esconderCursor, CURSOR_ESPERA_MS);
     }
 
     // Maneja las flechas y OK del control remoto cuando el cursor esta activo.
@@ -587,6 +603,7 @@ public class NavegadorActivity extends AppCompatActivity {
         }
         if (cursor != null && cursorActivo && vistaCompleta == null && !enPip()) {
             int tecla = ev.getKeyCode();
+            if (ev.getAction() == KeyEvent.ACTION_DOWN) despertarCursor();
             boolean flecha = tecla == KeyEvent.KEYCODE_DPAD_UP || tecla == KeyEvent.KEYCODE_DPAD_DOWN
                     || tecla == KeyEvent.KEYCODE_DPAD_LEFT || tecla == KeyEvent.KEYCODE_DPAD_RIGHT;
             if (flecha) {
