@@ -129,41 +129,4 @@
                 android:max="100" />
         </FrameLayout>
     </LinearLayout>
-
-    <!-- Portada que tapa la pagina mientras se abre el video en pantalla completa -->
-    <FrameLayout
-        android:id="@+id/portada"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#02122B"
-        android:clickable="true"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/app_name"
-            android:src="@drawable/logo_cuadrado" />
-
-        <ProgressBar
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center_horizontal|bottom"
-            android:layout_marginBottom="64dp"
-            android:indeterminateTint="@color/foco" />
-
-        <TextView
-            android:id="@+id/estadoPortada"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="20dp"
-            android:gravity="center"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:text="Abriendo…"
-            android:textColor="#9FB6D6"
-            android:textSize="13sp" />
-    </FrameLayout>
 </FrameLayout>

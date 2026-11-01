@@ -40,12 +40,8 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Importante: al cambiar el identificador (`py.loboplay.app`) Android lo instala como una app nueva. Para pasar tus sitios desde JokerPy, usa Ajustes > Respaldo > Exportar en la versión vieja e Importar en esta.
 - Los archivos del logo están en la carpeta `diseno/` (icono de 512 px para tiendas y logo original).
 
-## Pantalla completa automática (canales)
-- Nuevo interruptor por sitio: "Reproducir en pantalla completa al abrir" (Agregar/Editar sitio).
-- Al abrir el sitio se muestra el logo, la app busca el reproductor, lo reproduce y lo pasa a pantalla completa sola.
-- Atrás cierra el canal y vuelve al menú. Si no encuentra el reproductor en unos 40 segundos, muestra la página normal.
-- Los canales precargados vienen con esta opción activada. La opción se guarda también en el respaldo.
-- El reproductor conserva sus botones (silencio, pantalla completa, calidad). La app pasa a horizontal solo al tocar pantalla completa. Atrás sale de la pantalla completa y, estando en el canal, lo cierra.
+## Canales y video
+- Se quitó la opción "Reproducir en pantalla completa al abrir": los canales con video detectado ya abren el reproductor directo. La app pasa a horizontal solo al tocar pantalla completa; Atrás sale de la pantalla completa y luego cierra el canal.
 - Interruptor por sitio "Bloquear anuncios en este sitio" (activado por defecto; SNT lo trae apagado, porque su página no reproduce si detecta el bloqueador).
 - Cada sitio guarda la página (para el nombre y el icono) y, aparte, el video detectado. Si hay video se abre directo; si no, se abre la página.
 

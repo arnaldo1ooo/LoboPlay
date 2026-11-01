@@ -36,7 +36,6 @@ public final class Respaldo {
             o.put("url", s.url);
             o.put("favorito", s.favorito);
             o.put("escritorio", s.escritorio);
-            o.put("pantallaCompleta", s.pantallaCompleta);
             o.put("bloquearAnuncios", s.bloquearAnuncios);
             if (s.videoUrl != null) o.put("video", s.videoUrl);
             if (s.pais != null) o.put("pais", s.pais);
@@ -86,7 +85,6 @@ public final class Respaldo {
             s.url = url;
             s.favorito = o.optBoolean("favorito", false);
             s.escritorio = o.optBoolean("escritorio", false);
-            s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
             s.bloquearAnuncios = o.optBoolean("bloquearAnuncios", true);
             String video = o.optString("video", "").trim();
             s.videoUrl = video.toLowerCase(Locale.ROOT).matches("^https?://.+") ? video : null;

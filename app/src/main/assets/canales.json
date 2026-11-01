@@ -3,22 +3,19 @@
     "nombre": "Telefuturo",
     "url": "https://www.telefuturo.com.py",
     "video": "https://www.desdepylabs.com/External/tvaccion/telefuturo",
-    "pais": "PY",
-    "pantallaCompleta": true
+    "pais": "PY"
   },
   {
     "nombre": "SNT",
     "url": "https://www.snt.com.py/envivo/",
     "video": "https://d1vvmx3cm628xj.cloudfront.net/2_3/index.m3u8",
-    "pais": "PY",
-    "pantallaCompleta": true
+    "pais": "PY"
   },
   {
     "nombre": "Trece",
     "url": "https://www.trece.com.py",
     "video": "https://geo.dailymotion.com/player/x1at3a.html?video=k1bgQZHbBKPqXOHczd4",
-    "pais": "PY",
-    "pantallaCompleta": true
+    "pais": "PY"
   },
   {
     "nombre": "Unicanal",

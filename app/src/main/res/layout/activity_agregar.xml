@@ -239,12 +239,6 @@
             android:layout_marginTop="16dp"
             android:text="@string/modo_escritorio" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchPantallaCompleta"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/pantalla_completa_auto" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchBloquearAnuncios"

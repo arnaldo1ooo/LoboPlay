@@ -288,7 +288,6 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         boolean conVideo = sitio.videoUrl != null && !sitio.videoUrl.trim().isEmpty();
         i.putExtra(NavegadorActivity.EXTRA_URL, conVideo ? sitio.videoUrl : sitio.url);
         i.putExtra(NavegadorActivity.EXTRA_ESCRITORIO, sitio.escritorio);
-        i.putExtra(NavegadorActivity.EXTRA_PANTALLA_COMPLETA, sitio.pantallaCompleta);
         i.putExtra(NavegadorActivity.EXTRA_BLOQUEAR_ANUNCIOS, sitio.bloquearAnuncios);
         i.putExtra(NavegadorActivity.EXTRA_PAGINA, sitio.url);
         i.putExtra(NavegadorActivity.EXTRA_SITIO_ID, sitio.id);

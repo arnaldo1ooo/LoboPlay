@@ -33,7 +33,6 @@ public final class Precarga {
                     Sitio s = new Sitio();
                     s.nombre = o.getString("nombre");
                     s.url = o.getString("url");
-                    s.pantallaCompleta = o.optBoolean("pantallaCompleta", false);
                     s.bloquearAnuncios = o.optBoolean("bloquearAnuncios", true);
                     s.videoUrl = o.has("video") ? o.getString("video") : null;
                     s.pais = o.has("pais") ? o.getString("pais") : null;

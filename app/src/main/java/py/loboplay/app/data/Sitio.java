@@ -25,9 +25,6 @@ public class Sitio {
     public boolean bloquearAnuncios = true; // bloquear anuncios en este sitio (algunos canales no reproducen si lo detectan)
 
     @ColumnInfo(defaultValue = "0")
-    public boolean pantallaCompleta; // al abrir, reproduce y pone el video en pantalla completa
-
-    @ColumnInfo(defaultValue = "0")
     public long orden;         // posicion elegida por el usuario
 
     @ColumnInfo(defaultValue = "0")

@@ -64,7 +64,6 @@ public class AgregarActivity extends AppCompatActivity {
     private View cargando;
     private View progresoIcono;
     private CompoundButton switchEscritorio;
-    private CompoundButton switchPantallaCompleta;
     private CompoundButton switchBloquearAnuncios;
 
     private long idEdicion = -1;
@@ -123,7 +122,6 @@ public class AgregarActivity extends AppCompatActivity {
         cargando = findViewById(R.id.cargando);
         progresoIcono = findViewById(R.id.progresoIcono);
         switchEscritorio = findViewById(R.id.switchEscritorio);
-        switchPantallaCompleta = findViewById(R.id.switchPantallaCompleta);
         switchBloquearAnuncios = findViewById(R.id.switchBloquearAnuncios);
         findViewById(R.id.btnVolver).setOnClickListener(v -> finish());
 
@@ -430,7 +428,6 @@ public class AgregarActivity extends AppCompatActivity {
         paisEditado = s.pais != null;
         ponerPais(s.pais);
         switchEscritorio.setChecked(s.escritorio);
-        switchPantallaCompleta.setChecked(s.pantallaCompleta);
         switchBloquearAnuncios.setChecked(s.bloquearAnuncios);
         iconoPropio = s.iconoPropio;
         iconoWebActual = s.iconoWeb;
@@ -505,7 +502,6 @@ public class AgregarActivity extends AppCompatActivity {
         final boolean forzarWeb = refrescarWeb;
         final long id = idEdicion;
         final boolean escritorio = switchEscritorio.isChecked();
-        final boolean pantallaCompleta = switchPantallaCompleta.isChecked();
         final boolean bloquearAnuncios = switchBloquearAnuncios.isChecked();
         final Context app = getApplicationContext();
         // Icono que ya se bajo mientras se escribia la direccion (si coincide).
@@ -526,7 +522,6 @@ public class AgregarActivity extends AppCompatActivity {
             s.pais = pais;
             s.iconoPropio = propio;
             s.escritorio = escritorio;
-            s.pantallaCompleta = pantallaCompleta;
             s.bloquearAnuncios = bloquearAnuncios;
 
             if (existente == null) {
