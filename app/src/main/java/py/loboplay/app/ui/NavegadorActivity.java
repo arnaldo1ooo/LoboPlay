@@ -282,6 +282,10 @@ public class NavegadorActivity extends AppCompatActivity {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
             prepararFlujo(url, getIntent().getStringExtra(EXTRA_PAGINA));
             cargarFlujo();
+        } else if (esDailymotion(url)) {
+            // Reproductor de Dailymotion: se abre dentro de una pagina propia con el origen del canal.
+            prepararMarco(url, getIntent().getStringExtra(EXTRA_PAGINA));
+            cargarFlujo();
         } else if (url.contains("desdepylabs.com")) {
             Map<String, String> cabeceras = new HashMap<>();
             cabeceras.put("Referer", "https://www.telefuturo.com.py/envivo");
@@ -300,13 +304,36 @@ public class NavegadorActivity extends AppCompatActivity {
         return ruta != null && ruta.toLowerCase(java.util.Locale.ROOT).endsWith(".m3u8");
     }
 
+    // Dice si la direccion es un reproductor de Dailymotion.
+    private static boolean esDailymotion(String url) {
+        String host = Uri.parse(url).getHost();
+        return host != null && (host.equals("dailymotion.com") || host.endsWith(".dailymotion.com"));
+    }
+
+    // Origen que se le muestra al servidor del video: la web del canal, o el propio servidor si no hay.
+    private static String baseDe(String url, String pagina) {
+        return pagina != null && pagina.toLowerCase(java.util.Locale.ROOT).matches("^https?://.+")
+                ? pagina : Uri.parse(url).getScheme() + "://" + Uri.parse(url).getHost() + "/";
+    }
+
+    // Pagina propia con el reproductor ajeno dentro de un marco, como lo ve la web del canal.
+    private void prepararMarco(String reproductor, String pagina) {
+        baseFlujo = baseDe(reproductor, pagina);
+        String src = reproductor.contains("autoplay=") ? reproductor
+                : reproductor + (reproductor.contains("?") ? "&" : "?") + "autoplay=1";
+        htmlFlujo = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
+                + "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}"
+                + "iframe{border:0;width:100vw;height:100vh;display:block}</style></head><body>"
+                + "<iframe src=" + JSONObject.quote(src).replace("\"", "'") + " allow='autoplay; fullscreen; "
+                + "picture-in-picture; encrypted-media; web-share' allowfullscreen "
+                + "referrerpolicy='strict-origin-when-cross-origin'></iframe></body></html>";
+    }
+
     // Arma la pagina que reproduce el flujo. Usa hls.js si esta en assets/hls.min.js
     // y, si no, la reproduccion nativa de Android. La pagina se carga con el origen de
     // la web del canal, por si el servidor del video lo revisa.
     private void prepararFlujo(String flujo, String pagina) {
-        String base = pagina != null && pagina.toLowerCase(java.util.Locale.ROOT).matches("^https?://.+")
-                ? pagina : Uri.parse(flujo).getScheme() + "://" + Uri.parse(flujo).getHost() + "/";
-        baseFlujo = base;
+        baseFlujo = baseDe(flujo, pagina);
         String hls = leerAssetOpcional("hls.min.js").replace("</script", "<\\/script");
         // Sin hls.min.js en assets, se baja de internet (la version 1.5 mas reciente).
         String libreria = hls.trim().isEmpty()
@@ -398,7 +425,7 @@ public class NavegadorActivity extends AppCompatActivity {
             web.requestFocus();
             // Si el reproductor es un marco (otra pagina), un toque en el centro lo inicia.
             if ("IFRAME".equals(tipo)) {
-                manejador.postDelayed(() -> tocarEn(web.getWidth() / 2f, web.getHeight() / 2f), 800);
+                manejador.postDelayed(() -> tocarEn(web.getWidth() / 2f, web.getHeight() / 2f), 3000);
             }
         });
     }
