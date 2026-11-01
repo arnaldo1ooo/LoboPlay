@@ -241,7 +241,8 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         i.putExtra(NavegadorActivity.EXTRA_URL, sitio.url);
         i.putExtra(NavegadorActivity.EXTRA_ESCRITORIO, sitio.escritorio);
         i.putExtra(NavegadorActivity.EXTRA_PANTALLA_COMPLETA, sitio.pantallaCompleta);
-        i.putExtra(NavegadorActivity.EXTRA_PERMITIR_ANUNCIOS, sitio.permitirAnuncios);
+        i.putExtra(NavegadorActivity.EXTRA_BLOQUEAR_ANUNCIOS, sitio.bloquearAnuncios);
+        i.putExtra(NavegadorActivity.EXTRA_PAGINA, sitio.paginaUrl);
         startActivity(i);
     }
 

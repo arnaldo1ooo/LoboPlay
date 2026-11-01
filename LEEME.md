@@ -7,7 +7,7 @@ App Android (celular y Android TV) para guardar tus sitios favoritos en un menú
 - Agregar, editar y eliminar sitios a mano (pulsación larga sobre un sitio = opciones).
 - Canales de TV abierta precargados la primera vez (archivo `app/src/main/assets/canales.json`).
 - Icono de cada sitio: por defecto el de la propia página; se puede cambiar por uno propio.
-- Bloqueador de anuncios siempre activo (lista en `app/src/main/assets/anuncios.txt`). En los sitios que no reproducen si lo detectan, se desactiva con "No bloquear anuncios en este sitio" (Agregar/Editar).
+- Bloqueador de anuncios siempre activo (lista en `app/src/main/assets/anuncios.txt`). En los sitios que no reproducen si lo detectan, se desactiva apagando "Bloquear anuncios en este sitio" (Agregar/Editar).
 - Video a pantalla completa dentro del navegador interno.
 - Exportar e importar la lista en un archivo JSON (Ajustes > Respaldo). Al importar no se repiten los sitios que ya tienes. Algunas TV no traen selector de archivos; en ese caso la app lo avisa.
 
@@ -46,8 +46,13 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Atrás cierra el canal y vuelve al menú. Si no encuentra el reproductor en unos 40 segundos, muestra la página normal.
 - Los canales precargados vienen con esta opción activada. La opción se guarda también en el respaldo.
 - El reproductor conserva sus botones (silencio, pantalla completa, calidad). La app pasa a horizontal solo al tocar pantalla completa. Atrás sale de la pantalla completa y, estando en el canal, lo cierra.
-- Interruptor por sitio "No bloquear anuncios en este sitio" (SNT lo trae activado, porque su página no reproduce si detecta el bloqueador).
+- Interruptor por sitio "Bloquear anuncios en este sitio" (activado por defecto; SNT lo trae apagado, porque su página no reproduce si detecta el bloqueador).
 - Campo opcional "Página del canal": si la dirección principal es solo el reproductor (por ejemplo `desdepylabs.com` para Telefuturo), la página del canal se usa para buscar el nombre y el icono.
+
+## Canales con dirección directa del video (.m3u8)
+- Si la dirección de un sitio termina en `.m3u8`, la app la reproduce con una página propia: sin anuncios, sin la página del canal y con los botones de video del sistema. El campo "Página del canal" sirve de origen (y para el icono y el nombre).
+- Reproduce con la función nativa de Android. Opcional: para más compatibilidad copia `hls.min.js` (de la librería hls.js, licencia Apache 2.0) en `app/src/main/assets/`; la app lo usa solo si existe.
+- SNT usa esta forma. Si el canal cambia su dirección de video, edita el sitio y pega la nueva (en Chrome: F12 > Network > filtrar `m3u8`).
 
 ## Novedades de la versión 1.1
 - Diseño más moderno: tarjetas redondeadas, logo en el menú, botón flotante "Agregar sitio", chips Todos/Favoritos y buscador redondeado.

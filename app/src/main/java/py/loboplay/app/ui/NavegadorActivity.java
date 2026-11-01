@@ -42,6 +42,8 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,11 +58,14 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
     public static final String EXTRA_ESCRITORIO = "escritorio";
     public static final String EXTRA_PANTALLA_COMPLETA = "pantallaCompleta";
-    public static final String EXTRA_PERMITIR_ANUNCIOS = "permitirAnuncios";
+    public static final String EXTRA_BLOQUEAR_ANUNCIOS = "bloquearAnuncios";
+    public static final String EXTRA_PAGINA = "pagina";
 
     // Codigo comun: encuentra el reproductor (un video con tamano, o si no un marco grande).
     // lpCaja devuelve el contenedor del video que incluye sus botones (silencio, pantalla completa...).
-    private static final String JS_COMUN = "function lpCaja(v){"
+    private static final String JS_COMUN = "function lpTodos(s,r,a){[].push.apply(a,r.querySelectorAll(s));"
+            + "[].slice.call(r.querySelectorAll('*')).forEach(function(e){if(e.shadowRoot)lpTodos(s,e.shadowRoot,a);});return a;}"
+            + "function lpCaja(v){"
             + "var vr=v.getBoundingClientRect();var p=v.parentElement;"
             + "for(var i=0;p&&p!==document.body&&p!==document.documentElement&&i<6;i++,p=p.parentElement){"
             + "var r=p.getBoundingClientRect();"
@@ -68,7 +73,7 @@ public class NavegadorActivity extends AppCompatActivity {
             + "if(p.querySelector('button,[role=button],input[type=range]'))return p;}"
             + "return v;}"
             + "function lpBuscar(){"
-            + "var vs=[].slice.call(document.querySelectorAll('video'));"
+            + "var vs=lpTodos('video',document,[]);"
             + "vs.sort(function(a,b){return b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight;});"
             + "var fs=[].slice.call(document.querySelectorAll('iframe')).filter(function(f){"
             + "return f.clientWidth>=400&&f.clientHeight>=220;});"
@@ -119,6 +124,8 @@ public class NavegadorActivity extends AppCompatActivity {
     private WebView web;
     private ProgressBar progreso;
     private View portada;
+    private String htmlFlujo;   // pagina propia que reproduce un flujo .m3u8 directo
+    private String baseFlujo;
     private View vistaCompleta;
     private WebChromeClient.CustomViewCallback avisoCompleta;
 
@@ -150,9 +157,9 @@ public class NavegadorActivity extends AppCompatActivity {
         }
 
         BloqueadorAnuncios.cargar(this);
-        // Los anuncios se bloquean siempre, salvo en los sitios que lo piden (algunos canales
+        // Los anuncios se bloquean salvo en los sitios que lo desactivan (algunos canales
         // no reproducen si detectan el bloqueador).
-        final boolean bloquear = !getIntent().getBooleanExtra(EXTRA_PERMITIR_ANUNCIOS, false);
+        final boolean bloquear = getIntent().getBooleanExtra(EXTRA_BLOQUEAR_ANUNCIOS, true);
 
         contenedor = findViewById(R.id.contenedor);
         panel = findViewById(R.id.panel);
@@ -166,7 +173,10 @@ public class NavegadorActivity extends AppCompatActivity {
 
         titulo.setText(nombreCorto(url));
         findViewById(R.id.btnAtras).setOnClickListener(v -> retroceder());
-        findViewById(R.id.btnRecargar).setOnClickListener(v -> web.reload());
+        findViewById(R.id.btnRecargar).setOnClickListener(v -> {
+            if (htmlFlujo != null) cargarFlujo();
+            else web.reload();
+        });
         findViewById(R.id.btnCerrar).setOnClickListener(v -> finish());
 
         WebSettings ajustes = web.getSettings();
@@ -268,8 +278,11 @@ public class NavegadorActivity extends AppCompatActivity {
             manejador.postDelayed(this::buscarReproductor, 1500);
         }
 
-        // Algunos reproductores solo abren si creen que los llama la pagina del canal.
-        if (url.contains("desdepylabs.com")) {
+        if (esFlujoHls(url)) {
+            // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
+            prepararFlujo(url, getIntent().getStringExtra(EXTRA_PAGINA));
+            cargarFlujo();
+        } else if (url.contains("desdepylabs.com")) {
             Map<String, String> cabeceras = new HashMap<>();
             cabeceras.put("Referer", "https://www.telefuturo.com.py/envivo");
             web.loadUrl(url, cabeceras);
@@ -277,6 +290,55 @@ public class NavegadorActivity extends AppCompatActivity {
             web.loadUrl(url);
         }
         web.requestFocus();
+    }
+
+    // ---------- flujo directo (.m3u8) ----------
+
+    // Dice si la direccion es un flujo HLS (lista .m3u8).
+    private static boolean esFlujoHls(String url) {
+        String ruta = Uri.parse(url).getPath();
+        return ruta != null && ruta.toLowerCase(java.util.Locale.ROOT).endsWith(".m3u8");
+    }
+
+    // Arma la pagina que reproduce el flujo. Usa hls.js si esta en assets/hls.min.js
+    // y, si no, la reproduccion nativa de Android. La pagina se carga con el origen de
+    // la web del canal, por si el servidor del video lo revisa.
+    private void prepararFlujo(String flujo, String pagina) {
+        String base = pagina != null && pagina.toLowerCase(java.util.Locale.ROOT).matches("^https?://.+")
+                ? pagina : Uri.parse(flujo).getScheme() + "://" + Uri.parse(flujo).getHost() + "/";
+        baseFlujo = base;
+        String hls = leerAssetOpcional("hls.min.js").replace("</script", "<\\/script");
+        htmlFlujo = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
+                + "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}"
+                + "video{width:100vw;height:100vh;background:#000;object-fit:contain}</style></head><body>"
+                + "<video id='v' controls autoplay playsinline></video>"
+                + "<script>" + hls + "</script>"
+                + "<script>(function(){var v=document.getElementById('v'),src=" + JSONObject.quote(flujo) + ";"
+                + "function intentar(){var p=v.play();if(p&&p.catch)p.catch(function(){});}"
+                + "function nativo(){v.src=src;intentar();}"
+                + "if(window.Hls&&Hls.isSupported()){var h=new Hls();h.loadSource(src);h.attachMedia(v);"
+                + "h.on(Hls.Events.MANIFEST_PARSED,intentar);"
+                + "h.on(Hls.Events.ERROR,function(e,d){if(!d.fatal)return;"
+                + "if(d.type===Hls.ErrorTypes.NETWORK_ERROR)h.startLoad();"
+                + "else if(d.type===Hls.ErrorTypes.MEDIA_ERROR)h.recoverMediaError();"
+                + "else{h.destroy();nativo();}});}else{nativo();}})();</script></body></html>";
+    }
+
+    private void cargarFlujo() {
+        web.loadDataWithBaseURL(baseFlujo, htmlFlujo, "text/html", "utf-8", null);
+    }
+
+    // Lee un archivo de assets si existe (si no, devuelve texto vacio).
+    private String leerAssetOpcional(String nombre) {
+        try (InputStream in = getAssets().open(nombre)) {
+            ByteArrayOutputStream salida = new ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int n;
+            while ((n = in.read(buffer)) > 0) salida.write(buffer, 0, n);
+            return salida.toString("UTF-8");
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     // ---------- pantalla completa automatica ----------
