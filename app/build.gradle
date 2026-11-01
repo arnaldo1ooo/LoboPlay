@@ -3,25 +3,25 @@ plugins {
 }
 
 android {
-    namespace 'py.loboplay.app'
+    namespace = 'py.loboplay.app'
     compileSdk = 37
 
     defaultConfig {
-        minSdk 26
-        targetSdk 36
-        versionCode 1
-        versionName "1.1.0"
+        minSdk = 26
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.1.0"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
