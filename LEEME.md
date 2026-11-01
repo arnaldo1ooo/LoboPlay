@@ -51,7 +51,7 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 
 ## Canales con dirección directa del video (.m3u8)
 - Si la dirección de un sitio termina en `.m3u8`, la app la reproduce con una página propia: sin anuncios, sin la página del canal y con los botones de video del sistema. El campo "Página del canal" sirve de origen (y para el icono y el nombre).
-- Reproduce con la función nativa de Android. Opcional: para más compatibilidad copia `hls.min.js` (de la librería hls.js, licencia Apache 2.0) en `app/src/main/assets/`; la app lo usa solo si existe.
+- Usa la librería hls.js (licencia Apache 2.0): si existe `app/src/main/assets/hls.min.js` la usa desde ahí y, si no, la baja de internet (jsDelivr). Si tampoco puede, prueba la reproducción nativa de Android. Si algo falla, el motivo se muestra en la parte de arriba del video.
 - SNT usa esta forma. Si el canal cambia su dirección de video, edita el sitio y pega la nueva (en Chrome: F12 > Network > filtrar `m3u8`).
 
 ## Novedades de la versión 1.1

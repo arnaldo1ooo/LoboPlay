@@ -308,20 +308,32 @@ public class NavegadorActivity extends AppCompatActivity {
                 ? pagina : Uri.parse(flujo).getScheme() + "://" + Uri.parse(flujo).getHost() + "/";
         baseFlujo = base;
         String hls = leerAssetOpcional("hls.min.js").replace("</script", "<\\/script");
+        // Sin hls.min.js en assets, se baja de internet (la version 1.5 mas reciente).
+        String libreria = hls.trim().isEmpty()
+                ? "<script src='https://cdn.jsdelivr.net/npm/hls.js@1.5/dist/hls.min.js'></script>"
+                : "<script>" + hls + "</script>";
         htmlFlujo = "<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
                 + "<style>html,body{margin:0;height:100%;background:#000;overflow:hidden}"
-                + "video{width:100vw;height:100vh;background:#000;object-fit:contain}</style></head><body>"
-                + "<video id='v' controls autoplay playsinline></video>"
-                + "<script>" + hls + "</script>"
-                + "<script>(function(){var v=document.getElementById('v'),src=" + JSONObject.quote(flujo) + ";"
+                + "video{width:100vw;height:100vh;background:#000;object-fit:contain}"
+                + "#e{position:fixed;left:0;right:0;top:0;padding:8px;text-align:center;z-index:9;"
+                + "color:#9fb6d6;font:13px sans-serif;pointer-events:none}</style></head><body>"
+                + "<video id='v' controls autoplay playsinline></video><div id='e'></div>"
+                + libreria
+                + "<script>(function(){var v=document.getElementById('v'),e=document.getElementById('e'),"
+                + "src=" + JSONObject.quote(flujo) + ";"
+                + "function msg(t){e.textContent=t;}"
                 + "function intentar(){var p=v.play();if(p&&p.catch)p.catch(function(){});}"
                 + "function nativo(){v.src=src;intentar();}"
+                + "v.addEventListener('playing',function(){msg('');});"
+                + "v.addEventListener('error',function(){msg('No se pudo reproducir (video '+(v.error?v.error.code:'?')+')');});"
                 + "if(window.Hls&&Hls.isSupported()){var h=new Hls();h.loadSource(src);h.attachMedia(v);"
                 + "h.on(Hls.Events.MANIFEST_PARSED,intentar);"
-                + "h.on(Hls.Events.ERROR,function(e,d){if(!d.fatal)return;"
-                + "if(d.type===Hls.ErrorTypes.NETWORK_ERROR)h.startLoad();"
+                + "h.on(Hls.Events.ERROR,function(ev,d){msg('Error: '+d.details+(d.response?' ('+d.response.code+')':''));"
+                + "if(!d.fatal)return;"
+                + "if(d.type===Hls.ErrorTypes.NETWORK_ERROR)setTimeout(function(){h.startLoad();},2000);"
                 + "else if(d.type===Hls.ErrorTypes.MEDIA_ERROR)h.recoverMediaError();"
-                + "else{h.destroy();nativo();}});}else{nativo();}})();</script></body></html>";
+                + "else{h.destroy();nativo();}});}"
+                + "else{msg('Sin hls.js: usando reproduccion nativa');nativo();}})();</script></body></html>";
     }
 
     private void cargarFlujo() {
