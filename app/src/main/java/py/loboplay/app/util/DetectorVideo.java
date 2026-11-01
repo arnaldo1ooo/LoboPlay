@@ -16,6 +16,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Locale;
 
 // Abre la pagina en un navegador oculto y busca el video: una lista .m3u8, un reproductor
@@ -37,12 +40,16 @@ public final class DetectorVideo {
             "recaptcha", "gstatic.com", "tiktok.com", "whatsapp.com"
     };
 
+    // Busca iframes, <video> y reproductores de Dailymotion escritos en el codigo de la pagina.
     private static final String JS =
-            "(function(){var r={f:[],v:[]};"
-                    + "function z(d){try{(d.querySelectorAll('iframe')||[]).forEach(function(i){"
-                    + "var b=i.getBoundingClientRect();r.f.push({s:i.src||i.getAttribute('data-src')||'',w:b.width,h:b.height});});"
-                    + "d.querySelectorAll('video').forEach(function(v){r.v.push(v.currentSrc||v.src||'');});}catch(e){}}"
-                    + "z(document);return JSON.stringify(r);})()";
+            "(function(){var r={f:[],v:[],d:[]};" +
+            "function z(d){try{d.querySelectorAll('iframe').forEach(function(i){var b=i.getBoundingClientRect();r.f.push({s:i.src||i.getAttribute('data-src')||'',w:b.width,h:b.height});});" +
+            "d.querySelectorAll('video').forEach(function(v){r.v.push(v.currentSrc||v.src||'');});}catch(e){}}" +
+            "z(document);" +
+            "try{var h=document.documentElement.innerHTML.replace(/\\\\\\//g,'/').replace(/\\\\u002F/gi,'/').replace(/&amp;/g,'&');" +
+            "var m=h.match(/https?:\\/\\/(?:[a-z0-9-]+\\.)?dailymotion\\.com\\/player\\/[A-Za-z0-9]+\\.html\\?[^\"'\\\\\\s<>]*/gi)||[];" +
+            "m.forEach(function(x){if(r.d.indexOf(x)<0)r.d.push(x);});}catch(e){}" +
+            "return JSON.stringify(r);})()";
 
     private final Handler manejador = new Handler(Looper.getMainLooper());
     private final Escucha escucha;
@@ -118,7 +125,33 @@ public final class DetectorVideo {
         if (esTemporal(u)) {
             if (flujoTemporal == null) flujoTemporal = texto;
         } else if (flujo == null) {
-            flujo = texto;
+            // Solo vale si de verdad es una lista HLS (a veces es un anuncio o una pagina de error).
+            Hilos.RED.execute(() -> {
+                if (!terminado && flujo == null && esListaHls(texto)) flujo = texto;
+            });
+        }
+    }
+
+    // Baja el comienzo de la direccion y mira que sea una lista HLS (empieza con #EXTM3U).
+    private boolean esListaHls(String direccion) {
+        HttpURLConnection con = null;
+        try {
+            con = (HttpURLConnection) new URL(direccion).openConnection();
+            con.setConnectTimeout(6000);
+            con.setReadTimeout(6000);
+            con.setRequestProperty("Referer", pagina);
+            con.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36");
+            if (con.getResponseCode() != 200) return false;
+            try (InputStream in = con.getInputStream()) {
+                byte[] buf = new byte[256];
+                int n = in.read(buf);
+                if (n <= 0) return false;
+                return new String(buf, 0, n, "UTF-8").trim().startsWith("#EXTM3U");
+            }
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (con != null) con.disconnect();
         }
     }
 
@@ -161,6 +194,8 @@ public final class DetectorVideo {
             if (valor == null || valor.equals("null")) return null;
             String json = new org.json.JSONTokener(valor).nextValue().toString();
             JSONObject o = new JSONObject(json);
+            JSONArray d = o.optJSONArray("d");
+            if (d != null && d.length() > 0) return d.getString(0);
             String mejor = null;
             double area = 0;
             JSONArray f = o.getJSONArray("f");
