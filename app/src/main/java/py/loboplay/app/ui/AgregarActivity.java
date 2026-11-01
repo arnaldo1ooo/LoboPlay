@@ -47,7 +47,7 @@ public class AgregarActivity extends AppCompatActivity {
     private View progresoIcono;
     private CompoundButton switchEscritorio;
     private CompoundButton switchPantallaCompleta;
-    private CompoundButton switchPermitirAnuncios;
+    private CompoundButton switchBloquearAnuncios;
 
     private long idEdicion = -1;
     private String iconoPropio;
@@ -86,7 +86,7 @@ public class AgregarActivity extends AppCompatActivity {
         progresoIcono = findViewById(R.id.progresoIcono);
         switchEscritorio = findViewById(R.id.switchEscritorio);
         switchPantallaCompleta = findViewById(R.id.switchPantallaCompleta);
-        switchPermitirAnuncios = findViewById(R.id.switchPermitirAnuncios);
+        switchBloquearAnuncios = findViewById(R.id.switchBloquearAnuncios);
         findViewById(R.id.btnVolver).setOnClickListener(v -> finish());
 
         // Si el usuario escribe el nombre a mano, ya no se lo cambiamos.
@@ -224,7 +224,7 @@ public class AgregarActivity extends AppCompatActivity {
         if (s.paginaUrl != null) campoPagina.setText(s.paginaUrl);
         switchEscritorio.setChecked(s.escritorio);
         switchPantallaCompleta.setChecked(s.pantallaCompleta);
-        switchPermitirAnuncios.setChecked(s.permitirAnuncios);
+        switchBloquearAnuncios.setChecked(s.bloquearAnuncios);
         iconoPropio = s.iconoPropio;
         iconoWebActual = s.iconoWeb;
         mostrarIcono(iconoPropio != null ? iconoPropio : iconoWebActual);
@@ -302,7 +302,7 @@ public class AgregarActivity extends AppCompatActivity {
         final long id = idEdicion;
         final boolean escritorio = switchEscritorio.isChecked();
         final boolean pantallaCompleta = switchPantallaCompleta.isChecked();
-        final boolean permitirAnuncios = switchPermitirAnuncios.isChecked();
+        final boolean bloquearAnuncios = switchBloquearAnuncios.isChecked();
         final Context app = getApplicationContext();
         // Icono que ya se bajo mientras se escribia la direccion (si coincide).
         final Bitmap sugerido = (propio == null && fuente.equals(urlSugerida)) ? iconoSugerido : null;
@@ -323,7 +323,7 @@ public class AgregarActivity extends AppCompatActivity {
             s.iconoPropio = propio;
             s.escritorio = escritorio;
             s.pantallaCompleta = pantallaCompleta;
-            s.permitirAnuncios = permitirAnuncios;
+            s.bloquearAnuncios = bloquearAnuncios;
 
             if (existente == null) {
                 s.orden = dao.maxOrden() + 1;

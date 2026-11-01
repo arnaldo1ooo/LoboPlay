@@ -180,11 +180,12 @@
             android:text="@string/pantalla_completa_auto" />
 
         <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchPermitirAnuncios"
+            android:id="@+id/switchBloquearAnuncios"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/permitir_anuncios" />
+            android:checked="true"
+            android:text="@string/bloquear_anuncios_sitio" />
 
         <LinearLayout
             android:layout_width="match_parent"

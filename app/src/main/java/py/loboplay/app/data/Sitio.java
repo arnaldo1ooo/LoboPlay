@@ -20,8 +20,8 @@ public class Sitio {
     @ColumnInfo(defaultValue = "0")
     public boolean escritorio; // abrir como pagina de escritorio
 
-    @ColumnInfo(defaultValue = "0")
-    public boolean permitirAnuncios; // no bloquear anuncios en este sitio (algunos canales lo exigen)
+    @ColumnInfo(defaultValue = "1")
+    public boolean bloquearAnuncios = true; // bloquear anuncios en este sitio (algunos canales no reproducen si lo detectan)
 
     @ColumnInfo(defaultValue = "0")
     public boolean pantallaCompleta; // al abrir, reproduce y pone el video en pantalla completa

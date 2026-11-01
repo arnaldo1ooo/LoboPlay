@@ -40,7 +40,7 @@
     <string name="pantalla_completa_auto">Reproducir en pantalla completa al abrir</string>
     <string name="pagina_canal">Página del canal (opcional)</string>
     <string name="pagina_canal_ayuda">Se usa para buscar el nombre y el icono si la dirección de arriba es solo el video</string>
-    <string name="permitir_anuncios">No bloquear anuncios en este sitio</string>
+    <string name="bloquear_anuncios_sitio">Bloquear anuncios en este sitio</string>
     <string name="cursor">Cursor</string>
     <string name="pip_boton">Imagen en imagen</string>
     <string name="sin_recientes">Todavía no abriste ningún sitio</string>
