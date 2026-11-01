@@ -65,6 +65,51 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_PAGINA = "pagina";
     public static final String EXTRA_SITIO_ID = "sitioId";
 
+    // Reproductores de otro servidor (por ejemplo el de Telefuturo): la pagina trae su propia barra,
+    // empieza sin sonido y no se ajusta a la pantalla. Este codigo estira el reproductor (con sus
+    // botones) para que ocupe toda la pantalla y le activa el sonido las primeras veces.
+    private static final String JS_AJUSTAR = "(function(){"
+            + "function lpTodos(s,r,a){[].push.apply(a,r.querySelectorAll(s));"
+            + "[].slice.call(r.querySelectorAll('*')).forEach(function(e){if(e.shadowRoot)lpTodos(s,e.shadowRoot,a);});return a;}"
+            + "function lpCaja(v){"
+            + "var vr=v.getBoundingClientRect();var p=v.parentElement;"
+            + "for(var i=0;p&&p!==document.body&&p!==document.documentElement&&i<6;i++,p=p.parentElement){"
+            + "var r=p.getBoundingClientRect();"
+            + "if(r.height>vr.height*1.4+10||r.width>vr.width*1.15+10)break;"
+            + "if(p.querySelector('button,[role=button],input[type=range]'))return p;}"
+            + "return v;}"
+            + "function lpBuscar(){"
+            + "var vs=lpTodos('video',document,[]);"
+            + "vs.sort(function(a,b){return b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight;});"
+            + "var fs=[].slice.call(document.querySelectorAll('iframe')).filter(function(f){"
+            + "return f.clientWidth>=400&&f.clientHeight>=220;});"
+            + "fs.sort(function(a,b){return b.clientWidth*b.clientHeight-a.clientWidth*a.clientHeight;});"
+            + "var v=vs[0]&&vs[0].clientWidth>0&&vs[0].clientHeight>0?vs[0]:null,f=fs[0];"
+            + "var t=v?lpCaja(v):(f||null);"
+            + "return {t:t,v:v};}"
+            + "function poner(e,k,v){e.style.setProperty(k,v,'important');}"
+            + "function ver(){var r=lpBuscar();var t=r.t;if(!t)return false;"
+            + "poner(t,'position','fixed');poner(t,'top','0');poner(t,'left','0');"
+            + "poner(t,'width','100vw');poner(t,'height','100vh');poner(t,'max-width','none');"
+            + "poner(t,'max-height','none');poner(t,'margin','0');poner(t,'padding','0');"
+            + "poner(t,'border','0');poner(t,'z-index','2147483647');poner(t,'background','#000');"
+            + "poner(t,'transform','none');"
+            + "if(r.v&&t!==r.v){poner(r.v,'width','100%');poner(r.v,'height','100%');}"
+            + "if(r.v)poner(r.v,'object-fit','contain');"
+            + "for(var p=t.parentElement;p&&p!==document.body;p=p.parentElement){"
+            + "poner(p,'transform','none');poner(p,'filter','none');poner(p,'perspective','none');"
+            + "poner(p,'contain','none');poner(p,'overflow','visible');}"
+            + "poner(document.documentElement,'overflow','hidden');"
+            + "poner(document.body,'overflow','hidden');poner(document.body,'background','#000');"
+            + "window.__lpN=(window.__lpN||0)+1;"
+            + "if(r.v&&window.__lpN<=4){try{r.v.muted=false;if(r.v.paused)r.v.play();}catch(e){}}"
+            + "return true;}"
+            + "if(!ver())return 'no';"
+            + "if(!window.__lpAjuste){window.__lpAjuste=setInterval(ver,1500);}"
+            + "return 'ok';})()";
+
+    private static final int MAX_AJUSTES = 25;   // uno por segundo
+
     private static final String AGENTE_ESCRITORIO =
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -82,6 +127,7 @@ public class NavegadorActivity extends AppCompatActivity {
     private String paginaSitio;
     private DetectorVideo detector;
     private Snackbar avisoFallo;
+    private boolean ajustarVideo;   // el video es un reproductor de otro servidor que hay que ajustar
     private String htmlFlujo;   // pagina propia que reproduce un flujo .m3u8 directo
     private String baseFlujo;
     private View vistaCompleta;
@@ -127,7 +173,10 @@ public class NavegadorActivity extends AppCompatActivity {
         findViewById(R.id.btnAtras).setOnClickListener(v -> retroceder());
         findViewById(R.id.btnRecargar).setOnClickListener(v -> {
             if (htmlFlujo != null) cargarFlujo();
-            else web.reload();
+            else {
+                web.reload();
+                programarAjuste();
+            }
         });
         findViewById(R.id.btnCerrar).setOnClickListener(v -> finish());
 
@@ -257,10 +306,28 @@ public class NavegadorActivity extends AppCompatActivity {
             Map<String, String> cabeceras = new HashMap<>();
             cabeceras.put("Referer", pagina);
             web.loadUrl(url, cabeceras);
+            ajustarVideo = true;
+            programarAjuste();
         } else {
             web.loadUrl(url);
         }
         web.requestFocus();
+    }
+
+    // ---------- ajuste del reproductor ----------
+
+    // Despues de cargar, prueba una vez por segundo hasta que el reproductor quede ajustado.
+    private void programarAjuste() {
+        if (!ajustarVideo) return;
+        manejador.postDelayed(() -> ajustarReproductor(0), 1500);
+    }
+
+    private void ajustarReproductor(int intento) {
+        if (isFinishing() || isDestroyed() || intento >= MAX_AJUSTES) return;
+        web.evaluateJavascript(JS_AJUSTAR, valor -> {
+            if (valor != null && valor.contains("ok")) return;
+            manejador.postDelayed(() -> ajustarReproductor(intento + 1), 1000);
+        });
     }
 
     // ---------- video que cambio o no carga ----------
@@ -306,7 +373,10 @@ public class NavegadorActivity extends AppCompatActivity {
             } else if (video.equals(videoActual)) {
                 Toast.makeText(this, R.string.video_mismo, Toast.LENGTH_SHORT).show();
                 if (htmlFlujo != null) cargarFlujo();
-                else web.reload();
+                else {
+                    web.reload();
+                    programarAjuste();
+                }
             } else {
                 final long id = sitioId;
                 final Context app = getApplicationContext();
