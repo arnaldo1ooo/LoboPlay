@@ -45,7 +45,6 @@
     <string name="video_buscando">Buscando el video de la página…</string>
     <string name="probar_video">Probar video</string>
     <string name="no_usar_video">No usar este video (abrir la página)</string>
-    <string name="no_usar_video">No usar este video (abrir la página)</string>
     <string name="prueba_cargando">Cargando la vista previa… (sin sonido)</string>
     <string name="prueba_ok">✓ El video se reproduce</string>
     <string name="prueba_dudosa">No se pudo confirmar. Mira la imagen: si se ve el video, guárdalo; si no, usa la página.</string>
