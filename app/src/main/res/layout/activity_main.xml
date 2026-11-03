@@ -199,4 +199,40 @@
         app:backgroundTint="@color/azul"
         app:icon="@drawable/ic_agregar"
         app:iconTint="#FFFFFF" />
+
+    <!-- Pantalla de bienvenida: se ve un momento al abrir la app -->
+    <LinearLayout
+        android:id="@+id/bienvenida"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#02122B"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:contentDescription="@string/app_name"
+            android:src="@drawable/logo_cuadrado" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/app_name"
+            android:textColor="#FFFFFF"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/bienvenida_lema"
+            android:textColor="#9FB6D6"
+            android:textSize="15sp" />
+    </LinearLayout>
 </FrameLayout>

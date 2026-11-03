@@ -99,3 +99,5 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - El detector también busca listas .m3u8 escritas en la página (atributos del reproductor o código) y solo acepta una si trae canales o fragmentos y no un aviso de error. SNT ya no trae el video escrito: se detecta al abrir la app.
 - SNT viene con el bloqueo de anuncios apagado (su página no carga el video si detecta el bloqueador). La búsqueda de video respeta ese interruptor de cada sitio.
 - Al abrir un sitio sin video, la app intenta detectarlo primero (con Cancelar para abrir la página enseguida). Se reintenta como máximo cada 12 horas por sitio.
+- Pantalla de bienvenida (logo, nombre y lema) al abrir la app.
+- TV: la selección del control remoto ya no se pierde cuando cambian los datos (la lista usa DiffUtil y los chips de países solo se rehacen si cambian los países).

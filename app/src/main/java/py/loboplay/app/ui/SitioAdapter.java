@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -45,10 +46,39 @@ public class SitioAdapter extends RecyclerView.Adapter<SitioAdapter.Fila> {
     }
 
     // Reemplaza la lista que se muestra.
+    // Con DiffUtil solo se actualizan los items que cambian: asi la seleccion del control remoto no se pierde.
     public void setDatos(List<Sitio> nuevos) {
+        final List<Sitio> viejos = new ArrayList<>(sitios);
+        final List<Sitio> actuales = new ArrayList<>(nuevos);
+        DiffUtil.DiffResult cambios = DiffUtil.calculateDiff(new DiffUtil.Callback() {
+            @Override
+            public int getOldListSize() {
+                return viejos.size();
+            }
+
+            @Override
+            public int getNewListSize() {
+                return actuales.size();
+            }
+
+            @Override
+            public boolean areItemsTheSame(int a, int b) {
+                return viejos.get(a).id == actuales.get(b).id;
+            }
+
+            @Override
+            public boolean areContentsTheSame(int a, int b) {
+                Sitio x = viejos.get(a);
+                Sitio y = actuales.get(b);
+                return java.util.Objects.equals(x.nombre, y.nombre)
+                        && java.util.Objects.equals(x.iconoPropio, y.iconoPropio)
+                        && java.util.Objects.equals(x.iconoWeb, y.iconoWeb)
+                        && x.favorito == y.favorito;
+            }
+        });
         sitios.clear();
-        sitios.addAll(nuevos);
-        notifyDataSetChanged();
+        sitios.addAll(actuales);
+        cambios.dispatchUpdatesTo(this);
     }
 
     // Lista que se esta mostrando, en su orden actual.

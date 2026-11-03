@@ -53,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
     private ChipGroup chipsPais;
     private View filaPais;
     private String paisFiltro; // null = todos los paises
+    private java.util.List<String> codigosPais = new java.util.ArrayList<>();
     private View vacio;
     private TextView vacioTitulo;
     private TextView vacioAyuda;
@@ -90,6 +91,17 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         vacioTitulo = findViewById(R.id.vacioTitulo);
         vacioAyuda = findViewById(R.id.vacioAyuda);
         lista = findViewById(R.id.lista);
+
+        // Pantalla de bienvenida solo al abrir la app (no al girar la pantalla).
+        final View bienvenida = findViewById(R.id.bienvenida);
+        if (savedInstanceState == null) {
+            bienvenida.setVisibility(View.VISIBLE);
+            bienvenida.requestFocus();
+            bienvenida.postDelayed(() -> bienvenida.animate().alpha(0f).setDuration(300).withEndAction(() -> {
+                bienvenida.setVisibility(View.GONE);
+                lista.requestFocus();
+            }).start(), 1500);
+        }
         btnOrdenar = findViewById(R.id.btnOrdenar);
 
         // Cuantas columnas entran segun el ancho de la pantalla.
@@ -211,6 +223,11 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         });
         for (Sitio s : todos) codigos.add(codigoPais(s));
         if (paisFiltro != null && !codigos.contains(paisFiltro)) paisFiltro = null;
+        // Solo se rearma si cambiaron los paises: rehacer los chips en cada cambio de la base le quitaba
+        // la seleccion al que tenia el foco con el control remoto.
+        java.util.List<String> nuevos = new java.util.ArrayList<>(codigos);
+        if (nuevos.equals(codigosPais)) return;
+        codigosPais = nuevos;
         chipsPais.removeAllViews();
         filaPais.setVisibility(codigos.isEmpty() ? View.GONE : View.VISIBLE);
         if (codigos.isEmpty()) return;
