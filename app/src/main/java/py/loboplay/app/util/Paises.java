@@ -24,12 +24,15 @@ public final class Paises {
     }
 
     private static final String[][] LISTA = {
-            {"AR", "Argentina"}, {"BO", "Bolivia"}, {"BR", "Brasil"}, {"CL", "Chile"},
-            {"CO", "Colombia"}, {"CR", "Costa Rica"}, {"CU", "Cuba"}, {"EC", "Ecuador"},
-            {"SV", "El Salvador"}, {"ES", "España"}, {"US", "Estados Unidos"}, {"GT", "Guatemala"},
-            {"HN", "Honduras"}, {"MX", "México"}, {"NI", "Nicaragua"}, {"PA", "Panamá"},
-            {"PY", "Paraguay"}, {"PE", "Perú"}, {"DO", "República Dominicana"},
-            {"UY", "Uruguay"}, {"VE", "Venezuela"},
+            {"AO", "Angola"}, {"AR", "Argentina"}, {"BO", "Bolivia"}, {"BR", "Brasil"},
+            {"CV", "Cabo Verde"}, {"CL", "Chile"}, {"CO", "Colombia"}, {"CR", "Costa Rica"},
+            {"CU", "Cuba"}, {"EC", "Ecuador"}, {"SV", "El Salvador"}, {"ES", "España"},
+            {"US", "Estados Unidos"}, {"GT", "Guatemala"}, {"GQ", "Guinea Ecuatorial"},
+            {"GW", "Guinea-Bisáu"}, {"HN", "Honduras"}, {"MX", "México"}, {"MZ", "Mozambique"},
+            {"NI", "Nicaragua"}, {"PA", "Panamá"}, {"PY", "Paraguay"}, {"PE", "Perú"},
+            {"PT", "Portugal"}, {"PR", "Puerto Rico"}, {"DO", "República Dominicana"},
+            {"ST", "Santo Tomé y Príncipe"}, {"TL", "Timor Oriental"}, {"UY", "Uruguay"},
+            {"VE", "Venezuela"},
             {"OT", "Otro"} // paginas cuyo pais no se identifica
     };
 
