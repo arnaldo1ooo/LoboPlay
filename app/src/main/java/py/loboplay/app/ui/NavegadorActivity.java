@@ -138,6 +138,10 @@ public class NavegadorActivity extends AppCompatActivity {
     private boolean barraAutomatica;
     private boolean barraOculta;
     private final Runnable ocultarBarra = this::ocultarBarraSola;
+    // Reproduciendo un .m3u8 en la pagina propia de la app: no hay anuncios que bloquear, y el bloqueador
+    // (con una lista grande) podia cortar la lista del video y dar "manifestParsingError (200)".
+    private boolean flujoPropio;
+    private boolean autoRedetectado;   // ya se intento buscar el video de nuevo solo en esta apertura
     private boolean ajustarVideo;   // el video es un reproductor de otro servidor que hay que ajustar
     private String htmlFlujo;   // pagina propia que reproduce un flujo .m3u8 directo
     private String baseFlujo;
@@ -213,7 +217,7 @@ public class NavegadorActivity extends AppCompatActivity {
             // Corta los pedidos a dominios de publicidad.
             @Override
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest r) {
-                if (bloquear && BloqueadorAnuncios.esAnuncio(r.getUrl().getHost())) {
+                if (bloquear && !flujoPropio && BloqueadorAnuncios.esAnuncio(r.getUrl().getHost())) {
                     return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream(new byte[0]));
                 }
                 return super.shouldInterceptRequest(v, r);
@@ -297,6 +301,7 @@ public class NavegadorActivity extends AppCompatActivity {
         }
         if (PaginasVideo.esFlujoHls(url)) {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
+            flujoPropio = true;
             prepararFlujo(url, pagina);
             // La pagina del reproductor avisa si el video arranca o falla.
             web.addJavascriptInterface(new Object() {
@@ -309,7 +314,7 @@ public class NavegadorActivity extends AppCompatActivity {
 
                 @JavascriptInterface
                 public void fallo(String t) {
-                    runOnUiThread(() -> avisarFallo());
+                    runOnUiThread(() -> avisarFallo(t));
                 }
             }, "lp");
             cargarFlujo();
@@ -403,8 +408,16 @@ public class NavegadorActivity extends AppCompatActivity {
     // ---------- video que cambio o no carga ----------
 
     // Avisa que el video no se pudo reproducir y ofrece buscarlo de nuevo.
-    private void avisarFallo() {
+    private void avisarFallo(String motivo) {
         if (videoActual == null || isFinishing() || isDestroyed()) return;
+        // Si la lista del video no sirve (el canal cambio su direccion), lo busca de nuevo solo, una vez.
+        if (!autoRedetectado && detector == null && motivo != null
+                && (motivo.contains("manifest") || motivo.contains("levelLoad"))) {
+            autoRedetectado = true;
+            Toast.makeText(this, R.string.video_fallo_auto, Toast.LENGTH_SHORT).show();
+            volverADetectar();
+            return;
+        }
         if (avisoFallo != null && avisoFallo.isShown()) return;
         mostrarBarra();
         avisoFallo = Snackbar.make(contenedor, R.string.video_fallo, Snackbar.LENGTH_INDEFINITE)

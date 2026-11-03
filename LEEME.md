@@ -88,3 +88,10 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - En `canales.json`: `url` es la página del canal y `video` (opcional) el video directo.
 - En "Agregar sitio", el botón "Probar video" reproduce el video detectado (sin sonido) en un recuadro. Si no se reproduce, "No usar este video" lo quita y el sitio se abre con su página.
 - Si el video falla o cambió, el botón de lupa de la barra del navegador (y el aviso "No se pudo reproducir el video") y el botón "Volver a detectar video" de la pantalla de edición vuelven a buscarlo en la página; si hay uno nuevo, se guarda y se abre.
+
+## Canales de otros países y verificación
+- `canales.json` incluye canales abiertos de países de habla hispana y portuguesa (Argentina, Bolivia, Brasil, Chile, Ecuador y Paraguay). Solo quedaron los canales cuyo video la app logró detectar en la verificación; el resto se descartó, con `url` = página oficial en vivo y `pais`.
+- Estos canales vienen sin `video`: la primera vez que se abre la app, `VerificadorCanales` busca el video de cada uno en segundo plano (uno por vez, hasta ~16 s cada uno), lo guarda si lo encuentra y al final muestra un informe (✓ detectado / ✗ se abre la página). Si cierras la app antes de terminar, retoma lo pendiente la próxima vez.
+- Los países de habla portuguesa (Portugal, Angola, Mozambique, Cabo Verde, Guinea-Bisáu, Santo Tomé y Príncipe, Timor Oriental) y Guinea Ecuatorial y Puerto Rico se agregaron a la lista.
+- Los canales que solo transmiten por YouTube no se pueden detectar: se abren con su página.
+- Si la lista de un video `.m3u8` falla (por ejemplo, el canal cambió su dirección), la app lo busca de nuevo sola, una vez por apertura; si encuentra otro, lo guarda y lo abre.

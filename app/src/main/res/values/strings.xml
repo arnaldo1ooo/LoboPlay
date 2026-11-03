@@ -43,6 +43,7 @@
     <string name="video_ayuda">Se completa solo al escribir la dirección. Si no se encuentra, se abre la página.</string>
     <string name="video_buscando">Buscando el video de la página…</string>
     <string name="redetectar_video">Volver a detectar video</string>
+    <string name="video_fallo_auto">El video falló: buscando uno nuevo…</string>
     <string name="video_fallo">No se pudo reproducir el video</string>
     <string name="video_rebuscando">Buscando el video de nuevo…</string>
     <string name="video_mismo">El video sigue siendo el mismo</string>
