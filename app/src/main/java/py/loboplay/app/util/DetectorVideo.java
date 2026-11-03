@@ -4,8 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.DisplayMetrics;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
@@ -31,7 +35,7 @@ public final class DetectorVideo {
     }
 
     private static final long SONDEO_MS = 1500;
-    private static final long LIMITE_MS = 16000;
+    private static final long LIMITE_MS = 20000;
 
     // Reproductores que no se pueden abrir sueltos o que no son el video del canal.
     private static final String[] IGNORAR = {
@@ -42,13 +46,21 @@ public final class DetectorVideo {
 
     // Busca iframes, <video> y reproductores de Dailymotion escritos en el codigo de la pagina.
     private static final String JS =
-            "(function(){var r={f:[],v:[],d:[]};" +
+            "(function(){var r={f:[],v:[],d:[],m:[]};" +
+            "function lpT(s,q,a){[].push.apply(a,q.querySelectorAll(s));[].slice.call(q.querySelectorAll('*')).forEach(function(e){if(e.shadowRoot)lpT(s,e.shadowRoot,a);});return a;}" +
             "function z(d){try{d.querySelectorAll('iframe').forEach(function(i){var b=i.getBoundingClientRect();r.f.push({s:i.src||i.getAttribute('data-src')||'',w:b.width,h:b.height});});" +
             "d.querySelectorAll('video').forEach(function(v){r.v.push(v.currentSrc||v.src||'');});}catch(e){}}" +
             "z(document);" +
-            "try{var h=document.documentElement.innerHTML.replace(/\\\\\\//g,'/').replace(/\\\\u002F/gi,'/').replace(/&amp;/g,'&');" +
-            "var m=h.match(/https?:\\/\\/(?:[a-z0-9-]+\\.)?dailymotion\\.com\\/player\\/[A-Za-z0-9]+\\.html\\?[^\"'\\\\\\s<>]*/gi)||[];" +
+            "var h=document.documentElement.innerHTML.replace(/\\\\\\//g,'/').replace(/\\\\u002F/gi,'/').replace(/&amp;/g,'&');" +
+            "try{var m=h.match(/https?:\\/\\/(?:[a-z0-9-]+\\.)?dailymotion\\.com\\/player\\/[A-Za-z0-9]+\\.html\\?[^\"'\\\\\\s<>]*/gi)||[];" +
             "m.forEach(function(x){if(r.d.indexOf(x)<0)r.d.push(x);});}catch(e){}" +
+            "try{function am(x){if(x&&/\\.m3u8(\\?|$)/i.test(x)&&r.m.indexOf(x)<0)r.m.push(x);}" +
+            "lpT('*',document,[]).forEach(function(e){['src','data-src','data-srcset','srcset','data-stream','data-url','data-hls','href'].forEach(function(a){var v=e.getAttribute&&e.getAttribute(a);if(v)v.split(',').forEach(function(y){am(y.trim().split(' ')[0]);});});});" +
+            "(h.match(/https?:\\/\\/[^\"'\\\\\\s<>)]+\\.m3u8[^\"'\\\\\\s<>)]*/gi)||[]).forEach(am);}catch(e){}" +
+            "try{var W=window.innerWidth,H=window.innerHeight,best=null,ba=0;" +
+            "lpT('video,ned-player,iframe,[class*=player]',document,[]).forEach(function(e){var b=e.getBoundingClientRect(),a=b.width*b.height;" +
+            "if(b.width>=150&&b.height>=90&&b.width<=W+2&&b.height<=H*0.9&&a>ba){ba=a;best={x:b.left+b.width/2,y:b.top+b.height/2};}});" +
+            "if(best)r.p=best;}catch(e){}" +
             "return JSON.stringify(r);})()";
 
     private final Handler manejador = new Handler(Looper.getMainLooper());
@@ -57,21 +69,27 @@ public final class DetectorVideo {
     private WebView web;
     private boolean terminado = false;
     private long inicio;
+    private int sondeos;
+    private boolean cargada;   // termino la carga inicial: desde ahi la pagina no puede llevarnos a otra
 
     private volatile String flujo;       // .m3u8 estable visto en las peticiones
     private volatile String flujoTemporal; // .m3u8 con firma que caduca (solo informativo)
 
     private final Runnable sondeo = this::sondear;
 
-    private DetectorVideo(String pagina, Escucha escucha) {
+    private final boolean bloquear;   // bloquear anuncios mientras se busca (segun el ajuste del sitio)
+
+    private DetectorVideo(String pagina, boolean bloquear, Escucha escucha) {
+        this.bloquear = bloquear;
         this.pagina = pagina;
         this.escucha = escucha;
     }
 
     // Empieza a buscar (llamar desde el hilo principal). Devuelve el detector para poder cancelarlo.
     @SuppressLint("SetJavaScriptEnabled")
-    public static DetectorVideo buscar(Context ctx, String pagina, Escucha escucha) {
-        DetectorVideo d = new DetectorVideo(pagina, escucha);
+    // bloquear: igual que el interruptor del sitio (algunos sitios no cargan el video si ven el bloqueador).
+    public static DetectorVideo buscar(Context ctx, String pagina, boolean bloquear, Escucha escucha) {
+        DetectorVideo d = new DetectorVideo(pagina, bloquear, escucha);
         d.iniciar(ctx);
         return d;
     }
@@ -85,6 +103,18 @@ public final class DetectorVideo {
             terminar(null);
             return;
         }
+        // Con tamano de pantalla (y puesto debajo de la app, invisible), para que la pagina arme el
+        // reproductor como en un celular y se le puedan hacer toques.
+        DisplayMetrics dm = ctx.getResources().getDisplayMetrics();
+        if (ctx instanceof Activity) {
+            web.setAlpha(0f);
+            ((ViewGroup) ((Activity) ctx).getWindow().getDecorView()).addView(web, 0,
+                    new ViewGroup.LayoutParams(dm.widthPixels, dm.heightPixels));
+        } else {
+            web.measure(android.view.View.MeasureSpec.makeMeasureSpec(dm.widthPixels, android.view.View.MeasureSpec.EXACTLY),
+                    android.view.View.MeasureSpec.makeMeasureSpec(dm.heightPixels, android.view.View.MeasureSpec.EXACTLY));
+            web.layout(0, 0, dm.widthPixels, dm.heightPixels);
+        }
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
@@ -95,7 +125,7 @@ public final class DetectorVideo {
             public WebResourceResponse shouldInterceptRequest(WebView v, WebResourceRequest req) {
                 Uri u = req.getUrl();
                 String host = u.getHost();
-                if (BloqueadorAnuncios.esAnuncio(host)) {
+                if (bloquear && BloqueadorAnuncios.esAnuncio(host)) {
                     return new WebResourceResponse("text/plain", "utf-8", new ByteArrayInputStream(new byte[0]));
                 }
                 anotarFlujo(u);
@@ -103,14 +133,16 @@ public final class DetectorVideo {
             }
 
             @Override
-            public void onPageStarted(WebView v, String url, Bitmap icono) {
-                // La pagina no debe sacarnos de aqui con ventanas ni aplicaciones.
+            public void onPageFinished(WebView v, String url) {
+                cargada = true;
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest req) {
                 String esquema = req.getUrl().getScheme();
-                return esquema == null || !(esquema.equals("http") || esquema.equals("https"));
+                if (esquema == null || !(esquema.equals("http") || esquema.equals("https"))) return true;
+                // Despues de cargar, un toque no debe llevarnos a otra pagina (por ejemplo un anuncio).
+                return cargada && req.isForMainFrame();
             }
         });
         web.loadUrl(pagina);
@@ -143,10 +175,15 @@ public final class DetectorVideo {
             con.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36");
             if (con.getResponseCode() != 200) return false;
             try (InputStream in = con.getInputStream()) {
-                byte[] buf = new byte[256];
-                int n = in.read(buf);
-                if (n <= 0) return false;
-                return new String(buf, 0, n, "UTF-8").trim().startsWith("#EXTM3U");
+                byte[] buf = new byte[4096];
+                int total = 0;
+                int n;
+                while (total < buf.length && (n = in.read(buf, total, buf.length - total)) > 0) total += n;
+                if (total <= 0) return false;
+                String t = new String(buf, 0, total, "UTF-8").trim();
+                // Lista real: trae canales/fragmentos y no un aviso de error (ej. "#EXT-X-ERROR: Stream open failed").
+                return t.startsWith("#EXTM3U") && !t.contains("#EXT-X-ERROR")
+                        && (t.contains("#EXT-X-STREAM-INF") || t.contains("#EXTINF"));
             }
         } catch (Exception e) {
             return false;
@@ -173,8 +210,12 @@ public final class DetectorVideo {
         }
         long pasado = android.os.SystemClock.uptimeMillis() - inicio;
         final boolean ultimo = pasado >= LIMITE_MS;
+        final int tic = ++sondeos;
         web.evaluateJavascript(JS, valor -> {
             if (terminado) return;
+            // Muchos reproductores (como el de SNT) solo cargan el video cuando se toca play.
+            if (tic == 2 || tic == 5) tocarReproductor(valor);
+            probarListasDeLaPagina(valor);
             String hallado = flujo != null ? flujo : elegir(valor);
             // Un reproductor incrustado se acepta al final por si antes aparece un .m3u8 directo.
             if (flujo != null) terminar(flujo);
@@ -185,6 +226,54 @@ public final class DetectorVideo {
             manejador.postDelayed(() -> terminar(flujo), 2000);
         } else {
             manejador.postDelayed(sondeo, SONDEO_MS);
+        }
+    }
+
+    private final java.util.Set<String> probadas = new java.util.HashSet<>();
+
+    // Listas .m3u8 escritas en la pagina (atributos src o codigo): se comprueban y la primera valida gana.
+    private void probarListasDeLaPagina(String valor) {
+        try {
+            if (valor == null || valor.equals("null") || flujo != null) return;
+            JSONArray m = new JSONObject(new org.json.JSONTokener(valor).nextValue().toString()).optJSONArray("m");
+            if (m == null) return;
+            for (int i = 0; i < m.length() && i < 6; i++) {
+                final String u;
+                try {
+                    u = new URL(new URL(pagina), m.getString(i)).toString();
+                } catch (Exception e) {
+                    continue;
+                }
+                if (!probadas.add(u) || esTemporal(Uri.parse(u))) continue;
+                Hilos.RED.execute(() -> {
+                    if (!terminado && flujo == null && esListaHls(u)) flujo = u;
+                });
+            }
+        } catch (Exception ignorar) {
+        }
+    }
+
+    // Toca el centro del reproductor mas grande de la pagina, como lo haria el usuario.
+    private void tocarReproductor(String valor) {
+        try {
+            if (valor == null || web == null) return;
+            JSONObject p = new JSONObject(new org.json.JSONTokener(valor).nextValue().toString()).optJSONObject("p");
+            if (p == null) return;
+            float d = web.getResources().getDisplayMetrics().density;
+            final float x = (float) p.getDouble("x") * d;
+            final float y = (float) p.getDouble("y") * d;
+            long t = android.os.SystemClock.uptimeMillis();
+            MotionEvent abajo = MotionEvent.obtain(t, t, MotionEvent.ACTION_DOWN, x, y, 0);
+            web.dispatchTouchEvent(abajo);
+            abajo.recycle();
+            manejador.postDelayed(() -> {
+                if (web == null || terminado) return;
+                long t2 = android.os.SystemClock.uptimeMillis();
+                MotionEvent arriba = MotionEvent.obtain(t2, t2, MotionEvent.ACTION_UP, x, y, 0);
+                web.dispatchTouchEvent(arriba);
+                arriba.recycle();
+            }, 60);
+        } catch (Exception ignorar) {
         }
     }
 
@@ -259,6 +348,7 @@ public final class DetectorVideo {
             try {
                 web.stopLoading();
                 web.loadUrl("about:blank");
+                if (web.getParent() instanceof ViewGroup) ((ViewGroup) web.getParent()).removeView(web);
                 web.destroy();
             } catch (Exception ignorar) {
             }

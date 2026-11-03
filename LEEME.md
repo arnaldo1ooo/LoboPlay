@@ -95,3 +95,7 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Los países de habla portuguesa (Portugal, Angola, Mozambique, Cabo Verde, Guinea-Bisáu, Santo Tomé y Príncipe, Timor Oriental) y Guinea Ecuatorial y Puerto Rico se agregaron a la lista.
 - Los canales que solo transmiten por YouTube no se pueden detectar: se abren con su página.
 - Si la lista de un video `.m3u8` falla (por ejemplo, el canal cambió su dirección), la app lo busca de nuevo sola, una vez por apertura; si encuentra otro, lo guarda y lo abre.
+- El detector de video toca el reproductor de la página (como si el usuario diera play) porque algunos, como el de SNT, solo cargan el video después del toque. Corre invisible y con el tamaño de la pantalla.
+- El detector también busca listas .m3u8 escritas en la página (atributos del reproductor o código) y solo acepta una si trae canales o fragmentos y no un aviso de error. SNT ya no trae el video escrito: se detecta al abrir la app.
+- SNT viene con el bloqueo de anuncios apagado (su página no carga el video si detecta el bloqueador). La búsqueda de video respeta ese interruptor de cada sitio.
+- Al abrir un sitio sin video, la app intenta detectarlo primero (con Cancelar para abrir la página enseguida). Se reintenta como máximo cada 12 horas por sitio.

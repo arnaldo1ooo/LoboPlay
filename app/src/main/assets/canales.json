@@ -8,8 +8,8 @@
   {
     "nombre": "SNT",
     "url": "https://www.snt.com.py/envivo/",
-    "video": "https://d1vvmx3cm628xj.cloudfront.net/2_3/index.m3u8",
-    "pais": "PY"
+    "pais": "PY",
+    "bloquearAnuncios": false
   },
   {
     "nombre": "Trece",
@@ -22,5 +22,35 @@
     "url": "https://www.unicanal.com.py",
     "pais": "PY",
     "video": "https://geo.dailymotion.com/player/x1ilma.html?video=xak2lou"
+  },
+  {
+    "nombre": "TV Pública",
+    "url": "https://www.tvpublica.com.ar/vivo",
+    "pais": "AR"
+  },
+  {
+    "nombre": "Red Uno",
+    "url": "https://www.reduno.com.bo/senal-en-vivo",
+    "pais": "BO"
+  },
+  {
+    "nombre": "Bolivia TV",
+    "url": "https://www.boliviatv.bo/principal/vivo71.php",
+    "pais": "BO"
+  },
+  {
+    "nombre": "TV Cultura",
+    "url": "https://culturaplay.tvcultura.com.br/channels/14",
+    "pais": "BR"
+  },
+  {
+    "nombre": "TVN",
+    "url": "https://www.tvn.cl/en-vivo",
+    "pais": "CL"
+  },
+  {
+    "nombre": "Ecuavisa",
+    "url": "https://www.ecuavisa.com/envivo",
+    "pais": "EC"
   }
 ]

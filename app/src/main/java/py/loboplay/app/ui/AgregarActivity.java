@@ -261,7 +261,7 @@ public class AgregarActivity extends AppCompatActivity {
             detector = null;
             ponerVideo(anterior, R.string.video_cancelado);
         });
-        detector = DetectorVideo.buscar(this, pagina, video -> {
+        detector = DetectorVideo.buscar(this, pagina, switchBloquearAnuncios.isChecked(), video -> {
             cerrarDialogoBusqueda();
             if (isFinishing() || isDestroyed()) return;
             ponerVideo(video, video == null ? R.string.video_no_encontrado : R.string.video_encontrado);

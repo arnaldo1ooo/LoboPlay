@@ -446,7 +446,7 @@ public class NavegadorActivity extends AppCompatActivity {
             if (detector != null) detector.cancelar();
             detector = null;
         });
-        detector = DetectorVideo.buscar(this, paginaSitio, video -> {
+        detector = DetectorVideo.buscar(this, paginaSitio, getIntent().getBooleanExtra(EXTRA_BLOQUEAR_ANUNCIOS, true), video -> {
             detector = null;
             cerrarDialogoBusqueda();
             if (isFinishing() || isDestroyed()) return;

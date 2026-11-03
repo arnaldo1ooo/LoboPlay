@@ -35,8 +35,11 @@ import py.loboplay.app.data.Sitio;
 import py.loboplay.app.data.SitioDao;
 import py.loboplay.app.util.Ajustes;
 import py.loboplay.app.util.Bordes;
+import py.loboplay.app.util.DetectorVideo;
+import py.loboplay.app.util.DialogoBusqueda;
 import py.loboplay.app.util.Hilos;
 import py.loboplay.app.util.Paises;
+import py.loboplay.app.util.VerificadorCanales;
 
 // Pantalla principal: menu con todos los sitios.
 public class MainActivity extends AppCompatActivity implements SitioAdapter.Listener {
@@ -63,7 +66,14 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         setContentView(R.layout.activity_main);
         Bordes.aplicar(this, false);
 
-        Precarga.ejecutarSiHaceFalta(this);
+        Precarga.ejecutarSiHaceFalta(this, () -> {
+            if (isFinishing() || isDestroyed()) return;
+            VerificadorCanales.iniciar(this, informe -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                    .setTitle("Verificación de canales")
+                    .setMessage(informe)
+                    .setPositiveButton("Entendido", null)
+                    .show());
+        });
 
         buscar = findViewById(R.id.buscar);
         chipTodos = findViewById(R.id.chipTodos);
@@ -283,6 +293,35 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
                 // si no hay navegador externo se usa el interno
             }
         }
+        boolean sinVideo = sitio.videoUrl == null || sitio.videoUrl.trim().isEmpty();
+        if (sinVideo && Ajustes.puedeBuscarVideo(this, id)) {
+            buscarVideoYAbrir(sitio);
+            return;
+        }
+        abrirEnNavegador(sitio);
+    }
+
+    // Sitio sin video: antes de abrirlo intenta detectarlo (con Cancelar para abrir la pagina ya).
+    private void buscarVideoYAbrir(final Sitio sitio) {
+        Ajustes.marcarIntentoVideo(this, sitio.id);
+        final androidx.appcompat.app.AlertDialog[] dialogo = new androidx.appcompat.app.AlertDialog[1];
+        final DetectorVideo[] detector = new DetectorVideo[1];
+        dialogo[0] = DialogoBusqueda.mostrar(this, R.string.video_buscando, () -> {
+            if (detector[0] != null) detector[0].cancelar();
+            abrirEnNavegador(sitio);
+        });
+        detector[0] = DetectorVideo.buscar(this, sitio.url, sitio.bloquearAnuncios, video -> {
+            if (dialogo[0] != null) dialogo[0].dismiss();
+            if (isFinishing() || isDestroyed()) return;
+            if (video != null) {
+                sitio.videoUrl = video;
+                Hilos.IO.execute(() -> AppDatabase.get(getApplicationContext()).sitioDao().actualizar(sitio));
+            }
+            abrirEnNavegador(sitio);
+        });
+    }
+
+    private void abrirEnNavegador(Sitio sitio) {
         Intent i = new Intent(this, NavegadorActivity.class);
         // Si se detecto un video se abre directo; si no, la pagina.
         boolean conVideo = sitio.videoUrl != null && !sitio.videoUrl.trim().isEmpty();
@@ -383,5 +422,11 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
                     dao.eliminar(actual);
                 }))
                 .show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        VerificadorCanales.cancelar();
+        super.onDestroy();
     }
 }
