@@ -101,3 +101,17 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Al abrir un sitio sin video, la app intenta detectarlo primero (con Cancelar para abrir la página enseguida). Se reintenta como máximo cada 12 horas por sitio.
 - Pantalla de bienvenida (logo, nombre y lema) al abrir la app.
 - TV: la selección del control remoto ya no se pierde cuando cambian los datos (la lista usa DiffUtil y los chips de países solo se rehacen si cambian los países).
+
+## Iconos y bienvenida (ajuste)
+- La pantalla de bienvenida ahora tiene elevación, así el botón "Agregar sitio" ya no se ve encima.
+- `IconoHelper.completarFaltantes` reintenta el icono de los sitios sin icono (al abrir la app y al terminar la verificación), con tiempos de espera mayores.
+- Se quitó el diálogo "Verificación de canales"; la verificación sigue en segundo plano.
+
+## Cambiar de canal sin volver a la lista
+- Al abrir un canal, el reproductor recibe la lista visible (respeta filtro de país, búsqueda y orden) en `EXTRA_LISTA`.
+- Botones anterior/siguiente en la barra superior (solo si hay más de un canal) y, en el control remoto, las teclas CH+/CH− o Page Up/Down.
+- Es circular (del último pasa al primero) y marca el canal como reciente. Un canal sin video detectado se abre con su página.
+
+### Cambio de canal con las flechas (TV)
+- Video propio (HLS): izquierda/derecha cambian de canal si la barra está oculta o el cursor activo.
+- Página con cursor: empujar el cursor contra el borde izquierdo/derecho de la pantalla pasa al canal anterior/siguiente (arriba/abajo siguen desplazando la página).

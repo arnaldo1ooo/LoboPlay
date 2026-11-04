@@ -69,12 +69,10 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
 
         Precarga.ejecutarSiHaceFalta(this, () -> {
             if (isFinishing() || isDestroyed()) return;
-            VerificadorCanales.iniciar(this, informe -> new com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                    .setTitle("Verificación de canales")
-                    .setMessage(informe)
-                    .setPositiveButton("Entendido", null)
-                    .show());
+            VerificadorCanales.iniciar(this, informe -> Hilos.IO.execute(() -> IconoHelper.completarFaltantes(this)));
         });
+
+        Hilos.IO.execute(() -> IconoHelper.completarFaltantes(this));
 
         buscar = findViewById(R.id.buscar);
         chipTodos = findViewById(R.id.chipTodos);

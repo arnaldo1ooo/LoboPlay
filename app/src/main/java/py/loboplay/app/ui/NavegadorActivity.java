@@ -64,6 +64,20 @@ public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_BLOQUEAR_ANUNCIOS = "bloquearAnuncios";
     public static final String EXTRA_PAGINA = "pagina";
     public static final String EXTRA_SITIO_ID = "sitioId";
+    public static final String EXTRA_LISTA = "listaCanales";
+
+    // Arma el intent para abrir un sitio (con su video si lo tiene) y la lista para cambiar de canal.
+    public static android.content.Intent intentPara(android.content.Context ctx, Sitio sitio, long[] lista) {
+        android.content.Intent i = new android.content.Intent(ctx, NavegadorActivity.class);
+        boolean conVideo = sitio.videoUrl != null && !sitio.videoUrl.trim().isEmpty();
+        i.putExtra(EXTRA_URL, conVideo ? sitio.videoUrl : sitio.url);
+        i.putExtra(EXTRA_ESCRITORIO, sitio.escritorio);
+        i.putExtra(EXTRA_BLOQUEAR_ANUNCIOS, sitio.bloquearAnuncios);
+        i.putExtra(EXTRA_PAGINA, sitio.url);
+        i.putExtra(EXTRA_SITIO_ID, sitio.id);
+        if (lista != null) i.putExtra(EXTRA_LISTA, lista);
+        return i;
+    }
 
     // Reproductores de otro servidor (por ejemplo el de Telefuturo): la pagina trae su propia barra,
     // empieza sin sonido y no se ajusta a la pantalla. Este codigo estira el reproductor (con sus
@@ -129,6 +143,8 @@ public class NavegadorActivity extends AppCompatActivity {
 
     // Video guardado del sitio: si falla se puede volver a detectar.
     private long sitioId = -1;
+    private long[] listaCanales;
+    private boolean cambiandoCanal;
     private String videoActual;
     private String paginaSitio;
     private DetectorVideo detector;
@@ -285,6 +301,15 @@ public class NavegadorActivity extends AppCompatActivity {
 
         final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
         sitioId = getIntent().getLongExtra(EXTRA_SITIO_ID, -1);
+        listaCanales = getIntent().getLongArrayExtra(EXTRA_LISTA);
+        if (sitioId >= 0 && listaCanales != null && listaCanales.length > 1) {
+            View anterior = findViewById(R.id.btnCanalAnterior);
+            View siguiente = findViewById(R.id.btnCanalSiguiente);
+            anterior.setVisibility(View.VISIBLE);
+            siguiente.setVisibility(View.VISIBLE);
+            anterior.setOnClickListener(v -> cambiarCanal(-1));
+            siguiente.setOnClickListener(v -> cambiarCanal(1));
+        }
         if (sitioId >= 0 && pagina != null && !pagina.equals(url)) {
             videoActual = url;
             paginaSitio = pagina;
@@ -603,9 +628,62 @@ public class NavegadorActivity extends AppCompatActivity {
         manejador.postDelayed(esconderCursor, CURSOR_ESPERA_MS);
     }
 
+    // Pasa al canal anterior (-1) o siguiente (+1) de la lista desde donde se abrio.
+    private void cambiarCanal(int paso) {
+        if (cambiandoCanal || listaCanales == null || listaCanales.length < 2) return;
+        int pos = -1;
+        for (int k = 0; k < listaCanales.length; k++) if (listaCanales[k] == sitioId) pos = k;
+        if (pos < 0) return;
+        cambiandoCanal = true;
+        final long destino = listaCanales[(pos + paso + listaCanales.length) % listaCanales.length];
+        final android.content.Context app = getApplicationContext();
+        Hilos.IO.execute(() -> {
+            Sitio nuevo = AppDatabase.get(app).sitioDao().buscar(destino);
+            if (nuevo != null) AppDatabase.get(app).sitioDao().marcarAbierto(destino, System.currentTimeMillis());
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                if (nuevo == null) {
+                    cambiandoCanal = false;
+                    return;
+                }
+                Toast.makeText(this, nuevo.nombre, Toast.LENGTH_SHORT).show();
+                startActivity(intentPara(this, nuevo, listaCanales));
+                overridePendingTransition(0, 0);
+                finish();
+            });
+        });
+    }
+
     // Maneja las flechas y OK del control remoto cuando el cursor esta activo.
     @Override
     public boolean dispatchKeyEvent(KeyEvent ev) {
+        if (ev.getAction() == KeyEvent.ACTION_DOWN && ev.getRepeatCount() == 0 && !enPip()) {
+            int t = ev.getKeyCode();
+            if (t == KeyEvent.KEYCODE_CHANNEL_UP || t == KeyEvent.KEYCODE_PAGE_UP) {
+                cambiarCanal(1);
+                return true;
+            }
+            if (t == KeyEvent.KEYCODE_CHANNEL_DOWN || t == KeyEvent.KEYCODE_PAGE_DOWN) {
+                cambiarCanal(-1);
+                return true;
+            }
+            // Con las flechas: en el video propio (sin nada que tocar) izquierda/derecha cambian de canal;
+            // en una pagina con cursor, al empujar contra el borde izquierdo o derecho de la pantalla.
+            boolean izq = t == KeyEvent.KEYCODE_DPAD_LEFT;
+            boolean der = t == KeyEvent.KEYCODE_DPAD_RIGHT;
+            if ((izq || der) && listaCanales != null && listaCanales.length > 1) {
+                boolean directo = flujoPropio && (barraOculta || cursorActivo);
+                boolean enBorde = false;
+                if (!directo && cursor != null && cursorActivo) {
+                    float borde = 4 * getResources().getDisplayMetrics().density;
+                    enBorde = izq ? cursor.getPosX() <= borde : cursor.getPosX() >= cursor.getWidth() - borde;
+                }
+                if (directo || enBorde) {
+                    cambiarCanal(izq ? -1 : 1);
+                    return true;
+                }
+            }
+        }
         if (ev.getAction() == KeyEvent.ACTION_DOWN && vistaCompleta == null && !enPip()) {
             if (barraOculta && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && !cursorActivo) {
                 mostrarBarra();

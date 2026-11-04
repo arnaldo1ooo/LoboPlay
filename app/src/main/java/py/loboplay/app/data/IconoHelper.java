@@ -48,13 +48,45 @@ public final class IconoHelper {
         dao.actualizar(sitio);
     }
 
+    private static boolean completando;
+
+    // Reintenta el icono de los sitios que aun no tienen ninguno (sin red al inicio, pagina lenta...).
+    // Llamar desde un hilo de fondo.
+    public static void completarFaltantes(Context ctx) {
+        synchronized (IconoHelper.class) {
+            if (completando) return;
+            completando = true;
+        }
+        try {
+            Context app = ctx.getApplicationContext();
+            for (int intento = 0; intento < 2; intento++) {
+                boolean faltan = false;
+                for (Sitio s : AppDatabase.get(app).sitioDao().lista()) {
+                    if (s.iconoPropio != null || s.iconoWeb != null) continue;
+                    refrescarIconoWeb(app, s.id);
+                    Sitio nuevo = AppDatabase.get(app).sitioDao().buscar(s.id);
+                    if (nuevo != null && nuevo.iconoWeb == null) faltan = true;
+                }
+                if (!faltan) break;
+                try {
+                    Thread.sleep(4000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        } finally {
+            completando = false;
+        }
+    }
+
     // Lee la pagina una sola vez y devuelve su titulo y su icono.
     public static Pagina leerPagina(String paginaUrl) {
         Pagina pagina = new Pagina();
-        final long limite = System.currentTimeMillis() + 12000; // no esperar mas de esto
+        final long limite = System.currentTimeMillis() + 20000; // no esperar mas de esto
         Document doc = null;
         try {
-            doc = Jsoup.connect(paginaUrl).userAgent(AGENTE).timeout(5000).maxBodySize(1024 * 1024).get();
+            doc = Jsoup.connect(paginaUrl).userAgent(AGENTE).timeout(8000).maxBodySize(1024 * 1024).get();
         } catch (Exception ignorado) {
             // sin pagina se prueba solo con favicon.ico
         }
@@ -135,8 +167,8 @@ public final class IconoHelper {
     // Descarga un archivo pequeno de internet.
     private static byte[] bajar(String direccion) throws Exception {
         HttpURLConnection con = (HttpURLConnection) new URL(direccion).openConnection();
-        con.setConnectTimeout(5000);
-        con.setReadTimeout(5000);
+        con.setConnectTimeout(8000);
+        con.setReadTimeout(8000);
         con.setRequestProperty("User-Agent", AGENTE);
         try (InputStream in = con.getInputStream()) {
             ByteArrayOutputStream salida = new ByteArrayOutputStream();

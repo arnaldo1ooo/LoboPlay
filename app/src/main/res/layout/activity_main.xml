@@ -203,6 +203,8 @@
     <!-- Pantalla de bienvenida: se ve un momento al abrir la app -->
     <LinearLayout
         android:id="@+id/bienvenida"
+        android:elevation="100dp"
+        android:translationZ="100dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#02122B"
