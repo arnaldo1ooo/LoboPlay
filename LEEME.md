@@ -115,3 +115,8 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 ### Cambio de canal con las flechas (TV)
 - Video propio (HLS): izquierda/derecha cambian de canal si la barra está oculta o el cursor activo.
 - Página con cursor: empujar el cursor contra el borde izquierdo/derecho de la pantalla pasa al canal anterior/siguiente (arriba/abajo siguen desplazando la página).
+
+## Comentarios (formulario de Google)
+- Ajustes > Ayuda > Enviar comentarios, y "Enviar comentario sobre este canal" en el menú de pulsación larga de cada canal.
+- Campos: tipo, canal, mensaje (máx. 500, sin enlaces; opcional si hay canal elegido), contacto opcional. Se adjuntan solos versión de la app, Android, modelo, TV/teléfono y, si hay canal, su URL, país y video detectado.
+- `util/Comentarios.java` hace el POST a `formResponse` con los códigos `entry.…` (están al inicio del archivo; si se cambian los campos del formulario, actualizarlos ahí). Sin conexión, el comentario queda en cola (máx. 20) y se reintenta al abrir la app. Límite: un envío cada 10 s.

@@ -37,6 +37,8 @@ public class AjustesFragment extends PreferenceFragmentCompat {
         alTocar("exportar", () -> avisarSiFalla(() -> crearArchivo.launch("loboplay-sitios.json")));
         alTocar("importar", () -> avisarSiFalla(() -> abrirArchivo.launch(new String[]{"*/*"})));
         alTocar("actualizar_anuncios", this::actualizarAnuncios);
+        alTocar("comentarios", () -> startActivity(
+                new android.content.Intent(requireContext(), ComentariosActivity.class)));
     }
 
     // Asocia una accion al toque de una opcion.

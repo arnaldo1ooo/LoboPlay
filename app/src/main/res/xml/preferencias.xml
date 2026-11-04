@@ -31,4 +31,10 @@
             app:title="@string/importar"
             app:summary="@string/importar_resumen" />
     </PreferenceCategory>
+    <PreferenceCategory app:title="@string/comentarios_ayuda">
+        <Preference
+            app:key="comentarios"
+            app:title="@string/comentarios_titulo"
+            app:summary="@string/comentarios_resumen" />
+    </PreferenceCategory>
 </PreferenceScreen>

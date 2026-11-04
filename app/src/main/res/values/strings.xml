@@ -65,4 +65,25 @@
     <string name="busqueda_lenta">Está tardando más de lo normal. Puedes escribir el nombre y guardar.</string>
     <string name="canal_anterior">Canal anterior</string>
     <string name="canal_siguiente">Canal siguiente</string>
+    <string name="comentarios_titulo">Enviar comentarios</string>
+    <string name="comentarios_resumen">Cuéntanos un problema con un canal o sugiere uno nuevo</string>
+    <string name="comentarios_ayuda">Ayuda</string>
+    <string name="comentario_tipo">Tipo</string>
+    <string name="comentario_canal">Canal</string>
+    <string name="comentario_ninguno">Ninguno (general)</string>
+    <string name="comentario_mensaje">Mensaje</string>
+    <string name="comentario_contacto">Contacto (opcional)</string>
+    <string name="comentario_enviar">Enviar</string>
+    <string name="comentario_enviando">Enviando…</string>
+    <string name="comentario_gracias">¡Gracias por tu comentario!</string>
+    <string name="comentario_pendiente">Sin conexión: se enviará más tarde</string>
+    <string name="comentario_falta_mensaje">Escribe un mensaje o elige un canal</string>
+    <string name="comentario_sin_enlaces">No se permiten enlaces en el mensaje</string>
+    <string name="comentario_espera">Espera unos segundos antes de enviar otro</string>
+    <string-array name="comentario_tipos">
+        <item>Problema con un canal</item>
+        <item>Sugerencia de canal</item>
+        <item>Error de la app</item>
+        <item>Otro</item>
+    </string-array>
 </resources>

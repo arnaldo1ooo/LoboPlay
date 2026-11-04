@@ -73,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         });
 
         Hilos.IO.execute(() -> IconoHelper.completarFaltantes(this));
+        Hilos.RED.execute(() -> py.loboplay.app.util.Comentarios.reintentarPendientes(this));
 
         buscar = findViewById(R.id.buscar);
         chipTodos = findViewById(R.id.chipTodos);
@@ -357,6 +358,7 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
                 "Mover antes",
                 "Mover después",
                 "Actualizar icono de la página",
+                "Enviar comentario sobre este canal",
                 "Eliminar"
         };
         new MaterialAlertDialogBuilder(this)
@@ -379,6 +381,11 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
                             break;
                         case 4:
                             Hilos.IO.execute(() -> IconoHelper.refrescarIconoWeb(getApplicationContext(), sitio.id));
+                            break;
+                        case 5:
+                            Intent c = new Intent(this, ComentariosActivity.class);
+                            c.putExtra(ComentariosActivity.EXTRA_SITIO_ID, sitio.id);
+                            startActivity(c);
                             break;
                         default:
                             confirmarEliminar(sitio);
