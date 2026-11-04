@@ -337,15 +337,11 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
     }
 
     private void abrirEnNavegador(Sitio sitio) {
-        Intent i = new Intent(this, NavegadorActivity.class);
-        // Si se detecto un video se abre directo; si no, la pagina.
-        boolean conVideo = sitio.videoUrl != null && !sitio.videoUrl.trim().isEmpty();
-        i.putExtra(NavegadorActivity.EXTRA_URL, conVideo ? sitio.videoUrl : sitio.url);
-        i.putExtra(NavegadorActivity.EXTRA_ESCRITORIO, sitio.escritorio);
-        i.putExtra(NavegadorActivity.EXTRA_BLOQUEAR_ANUNCIOS, sitio.bloquearAnuncios);
-        i.putExtra(NavegadorActivity.EXTRA_PAGINA, sitio.url);
-        i.putExtra(NavegadorActivity.EXTRA_SITIO_ID, sitio.id);
-        startActivity(i);
+        // La lista visible permite cambiar de canal desde el reproductor.
+        List<Sitio> visibles = adaptador.getLista();
+        long[] ids = new long[visibles.size()];
+        for (int k = 0; k < ids.length; k++) ids[k] = visibles.get(k).id;
+        startActivity(NavegadorActivity.intentPara(this, sitio, ids));
     }
 
     // Menu con las acciones de un sitio (pulsacion larga).

@@ -63,4 +63,6 @@
     <string name="pip_boton">Imagen en imagen</string>
     <string name="sin_recientes">Todavía no abriste ningún sitio</string>
     <string name="busqueda_lenta">Está tardando más de lo normal. Puedes escribir el nombre y guardar.</string>
+    <string name="canal_anterior">Canal anterior</string>
+    <string name="canal_siguiente">Canal siguiente</string>
 </resources>
