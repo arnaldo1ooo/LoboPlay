@@ -659,6 +659,17 @@ public class NavegadorActivity extends AppCompatActivity {
         manejador.postDelayed(esconderCursor, CURSOR_ESPERA_MS);
     }
 
+    // Cambia de pantalla sin animacion (el cambio de canal no debe parpadear).
+    @SuppressWarnings("deprecation")
+    private void sinAnimacion() {
+        if (Build.VERSION.SDK_INT >= 34) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_OPEN, 0, 0);
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, 0);
+        } else {
+            overridePendingTransition(0, 0);
+        }
+    }
+
     // Pasa al canal anterior (-1) o siguiente (+1) de la lista desde donde se abrio.
     private void cambiarCanal(int paso) {
         if (cambiandoCanal || listaCanales == null || listaCanales.length < 2) return;
@@ -679,7 +690,7 @@ public class NavegadorActivity extends AppCompatActivity {
                 }
                 Toast.makeText(this, nuevo.nombre, Toast.LENGTH_SHORT).show();
                 startActivity(intentPara(this, nuevo, listaCanales));
-                overridePendingTransition(0, 0);
+                sinAnimacion();
                 finish();
             });
         });

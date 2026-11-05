@@ -140,3 +140,5 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 ## Barra fija en vertical y tema claro/oscuro
 - En teléfono con la pantalla vertical la barra del reproductor queda siempre visible; en horizontal se esconde sola como antes (`barraFija()` y `onConfigurationChanged` en `NavegadorActivity`). En TV no cambia.
 - Ajustes > Apariencia > Tema: "Como el sistema", "Claro" u "Oscuro". `LoboPlayApp` (registrada en el manifiesto) lo aplica al abrir la app y el ajuste lo aplica al instante (`AppCompatDelegate.setDefaultNightMode`).
+
+- Se reemplazó `overridePendingTransition` (obsoleta desde Android 14) por `overrideActivityTransition` en `NavegadorActivity.sinAnimacion()`, con la versión antigua para Android < 14.
