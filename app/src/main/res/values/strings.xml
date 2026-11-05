@@ -88,4 +88,16 @@
     </string-array>
     <string name="gesto_brillo">Brillo con el dedo</string>
     <string name="gesto_brillo_resumen">Desliza hacia arriba o abajo por el lado izquierdo del reproductor para cambiar el brillo</string>
+    <string name="apariencia">Apariencia</string>
+    <string name="tema">Tema</string>
+    <string-array name="tema_nombres">
+        <item>Como el sistema</item>
+        <item>Claro</item>
+        <item>Oscuro</item>
+    </string-array>
+    <string-array name="tema_valores">
+        <item>sistema</item>
+        <item>claro</item>
+        <item>oscuro</item>
+    </string-array>
 </resources>

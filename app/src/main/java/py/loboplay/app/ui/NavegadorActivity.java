@@ -380,8 +380,25 @@ public class NavegadorActivity extends AppCompatActivity {
         manejador.postDelayed(ocultarBarra, ms);
     }
 
+    // En el telefono en vertical la barra queda siempre visible (en horizontal se esconde sola).
+    private boolean barraFija() {
+        return !esTv && getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration nueva) {
+        super.onConfigurationChanged(nueva);
+        if (barra == null) return;
+        if (barraFija()) {
+            barraOculta = false;
+            if (!enPip()) barra.setVisibility(View.VISIBLE);
+        } else {
+            programarOcultarBarra(3000);
+        }
+    }
+
     private void ocultarBarraSola() {
-        if (!barraAutomatica || isFinishing() || isDestroyed()) return;
+        if (!barraAutomatica || isFinishing() || isDestroyed() || barraFija()) return;
         // Si se esta usando (foco en la barra) o hay un video a pantalla completa, espera.
         if (barra.hasFocus() || vistaCompleta != null) {
             programarOcultarBarra(4000);

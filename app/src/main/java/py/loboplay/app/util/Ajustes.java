@@ -35,6 +35,17 @@ public final class Ajustes {
         return prefs(c).getBoolean(CURSOR_TV, true);
     }
 
+    // Tema elegido: "sistema", "claro" u "oscuro".
+    public static int modoTema(Context c) {
+        return aModo(prefs(c).getString("tema", "sistema"));
+    }
+
+    public static int aModo(String valor) {
+        if ("claro".equals(valor)) return androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO;
+        if ("oscuro".equals(valor)) return androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_YES;
+        return androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
+    }
+
     // Dice si el brillo se cambia deslizando por el lado izquierdo del reproductor.
     public static boolean gestoBrillo(Context c) {
         return prefs(c).getBoolean("gesto_brillo", true);

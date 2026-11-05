@@ -13,6 +13,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import py.loboplay.app.R;
+import py.loboplay.app.util.Ajustes;
 import py.loboplay.app.util.BloqueadorAnuncios;
 import py.loboplay.app.util.Hilos;
 import py.loboplay.app.util.Respaldo;
@@ -36,6 +37,13 @@ public class AjustesFragment extends PreferenceFragmentCompat {
 
         alTocar("exportar", () -> avisarSiFalla(() -> crearArchivo.launch("loboplay-sitios.json")));
         alTocar("importar", () -> avisarSiFalla(() -> abrirArchivo.launch(new String[]{"*/*"})));
+        Preference tema = findPreference("tema");
+        if (tema != null) {
+            tema.setOnPreferenceChangeListener((x, valor) -> {
+                androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(Ajustes.aModo((String) valor));
+                return true;
+            });
+        }
         alTocar("actualizar_anuncios", this::actualizarAnuncios);
         alTocar("comentarios", () -> startActivity(
                 new android.content.Intent(requireContext(), ComentariosActivity.class)));
