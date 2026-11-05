@@ -681,25 +681,36 @@ public class NavegadorActivity extends AppCompatActivity {
                 cambiarCanal(-1);
                 return true;
             }
-            // Con las flechas: en el video propio (sin nada que tocar) izquierda/derecha cambian de canal;
-            // en una pagina con cursor, al empujar contra el borde izquierdo o derecho de la pantalla.
+            boolean hayLista = listaCanales != null && listaCanales.length > 1;
+            // Video propio (sin nada que tocar): arriba/abajo cambian de canal.
+            boolean directo = flujoPropio && (barraOculta || cursorActivo);
+            if (hayLista && directo && (t == KeyEvent.KEYCODE_DPAD_UP || t == KeyEvent.KEYCODE_DPAD_DOWN)) {
+                cambiarCanal(t == KeyEvent.KEYCODE_DPAD_UP ? 1 : -1);
+                return true;
+            }
+            // En una pagina con cursor: empujar el cursor contra el borde izquierdo o derecho.
             boolean izq = t == KeyEvent.KEYCODE_DPAD_LEFT;
             boolean der = t == KeyEvent.KEYCODE_DPAD_RIGHT;
-            if ((izq || der) && listaCanales != null && listaCanales.length > 1) {
-                boolean directo = flujoPropio && (barraOculta || cursorActivo);
-                boolean enBorde = false;
-                if (!directo && cursor != null && cursorActivo) {
-                    float borde = 4 * getResources().getDisplayMetrics().density;
-                    enBorde = izq ? cursor.getPosX() <= borde : cursor.getPosX() >= cursor.getWidth() - borde;
-                }
-                if (directo || enBorde) {
+            if (hayLista && (izq || der) && !flujoPropio && cursor != null && cursorActivo) {
+                float borde = 4 * getResources().getDisplayMetrics().density;
+                boolean enBorde = izq ? cursor.getPosX() <= borde : cursor.getPosX() >= cursor.getWidth() - borde;
+                if (enBorde) {
                     cambiarCanal(izq ? -1 : 1);
                     return true;
                 }
             }
+            // Video propio con la barra oculta y sin cursor: OK muestra la barra.
+            if (flujoPropio && barraOculta && !cursorActivo && vistaCompleta == null
+                    && (t == KeyEvent.KEYCODE_DPAD_CENTER || t == KeyEvent.KEYCODE_ENTER
+                    || t == KeyEvent.KEYCODE_NUMPAD_ENTER)) {
+                mostrarBarra();
+                View siguiente = findViewById(R.id.btnCanalSiguiente);
+                (siguiente.getVisibility() == View.VISIBLE ? siguiente : findViewById(R.id.btnAtras)).requestFocus();
+                return true;
+            }
         }
         if (ev.getAction() == KeyEvent.ACTION_DOWN && vistaCompleta == null && !enPip()) {
-            if (barraOculta && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && !cursorActivo) {
+            if (barraOculta && !flujoPropio && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && !cursorActivo) {
                 mostrarBarra();
                 findViewById(R.id.btnAtras).requestFocus();
                 return true;

@@ -113,7 +113,7 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Es circular (del último pasa al primero) y marca el canal como reciente. Un canal sin video detectado se abre con su página.
 
 ### Cambio de canal con las flechas (TV)
-- Video propio (HLS): izquierda/derecha cambian de canal si la barra está oculta o el cursor activo.
+- Video propio (HLS): (reemplazado más abajo: ahora Arriba/Abajo) si la barra está oculta o el cursor activo.
 - Página con cursor: empujar el cursor contra el borde izquierdo/derecho de la pantalla pasa al canal anterior/siguiente (arriba/abajo siguen desplazando la página).
 
 ## Comentarios (formulario de Google)
@@ -130,4 +130,9 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 ## Barra abajo y cursor según el contenido
 - La barra de opciones del reproductor ahora está **abajo**. Se muestra tocando el borde inferior (teléfono), con Abajo en el control remoto (si no hay cursor) o llevando el cursor al fondo de una página que ya no se desplaza. Arriba/abajo del cursor siguen desplazando la página.
 - El gesto de brillo ignora la zona de la barra mientras está visible.
-- Con video propio (.m3u8) el cursor arranca apagado (izquierda/derecha cambian de canal); en páginas web sigue encendido según el ajuste "Cursor en TV". El botón de la barra lo activa o apaga.
+- Con video propio (.m3u8) el cursor arranca apagado (Arriba/Abajo cambian de canal); en páginas web sigue encendido según el ajuste "Cursor en TV". El botón de la barra lo activa o apaga.
+
+## TV: arriba/abajo cambian de canal
+- Video propio: Arriba = canal siguiente, Abajo = canal anterior (con la barra oculta o el cursor activo). OK muestra la barra (con el foco en "siguiente"); Izquierda/Derecha quedan libres.
+- Páginas web con cursor: sin cambios (Arriba/Abajo mueven el cursor; cambiar de canal empujando el cursor contra el borde izquierdo/derecho; Abajo del todo pasa a la barra).
+- CH+/CH− y Page Up/Down siguen funcionando siempre.
