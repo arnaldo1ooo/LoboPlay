@@ -122,10 +122,10 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - `util/Comentarios.java` hace el POST a `formResponse` con los códigos `entry.…` (están al inicio del archivo; si se cambian los campos del formulario, actualizarlos ahí). Sin conexión, el comentario queda en cola (máx. 20) y se reintenta al abrir la app. Límite: un envío cada 10 s.
 
 ## Brillo con el dedo
-- En el reproductor (solo teléfonos/tablets), deslizar arriba o abajo por el tercio izquierdo de la pantalla cambia el brillo de la ventana; muestra el porcentaje y no afecta al brillo del sistema. El nivel se mantiene al cambiar de canal.
+- En el reproductor (solo teléfonos/tablets), deslizar arriba o abajo por el borde izquierdo de la pantalla cambia el brillo de la ventana; muestra el porcentaje y no afecta al brillo del sistema. El nivel se mantiene al cambiar de canal.
 - La primera vez que se abre un canal, un panel sobre esa zona explica el gesto (se cierra solo, o al tocarlo).
 - Se desactiva en Ajustes > Brillo con el dedo (`gesto_brillo`). Un toque normal en esa zona sigue llegando a la página; solo el arrastre vertical se usa para el brillo.
-- Código en `ui/GestoBrillo.java`.
+- Código en `ui/GestosLaterales.java` (antes `GestoBrillo.java`).
 
 ## Barra abajo y cursor según el contenido
 - La barra de opciones del reproductor ahora está **abajo**. Se muestra tocando el borde inferior (teléfono), con Abajo en el control remoto (si no hay cursor) o llevando el cursor al fondo de una página que ya no se desplaza. Arriba/abajo del cursor siguen desplazando la página.
@@ -142,3 +142,9 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Ajustes > Apariencia > Tema: "Como el sistema", "Claro" u "Oscuro". `LoboPlayApp` (registrada en el manifiesto) lo aplica al abrir la app y el ajuste lo aplica al instante (`AppCompatDelegate.setDefaultNightMode`).
 
 - Se reemplazó `overridePendingTransition` (obsoleta desde Android 14) por `overrideActivityTransition` en `NavegadorActivity.sinAnimacion()`, con la versión antigua para Android < 14.
+
+## Volumen con el dedo y zonas más angostas
+- Deslizar arriba/abajo por el **borde derecho** cambia el volumen de multimedia (indicador a la derecha); el izquierdo sigue siendo el brillo. Cada lado ocupa el 20 % del ancho (antes un tercio), así hay menos toques accidentales.
+- La primera vez de cada gesto, un panel sobre su zona muestra ▲ icono ▼ con las flechas animadas subiendo y bajando; se cierra solo o al tocarlo.
+- Ajustes: "Brillo con el dedo" y "Volumen con el dedo" se activan por separado. No aplica en TV.
+- `GestoBrillo.java` se renombró a `GestosLaterales.java`: borrar el archivo viejo si queda en el proyecto.

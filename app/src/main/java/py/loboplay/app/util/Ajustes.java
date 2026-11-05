@@ -51,6 +51,19 @@ public final class Ajustes {
         return prefs(c).getBoolean("gesto_brillo", true);
     }
 
+    // Dice si el volumen se cambia deslizando por el lado derecho del reproductor.
+    public static boolean gestoVolumen(Context c) {
+        return prefs(c).getBoolean("gesto_volumen", true);
+    }
+
+    public static boolean gestoVolumenVisto(Context c) {
+        return prefs(c).getBoolean("gesto_volumen_visto", false);
+    }
+
+    public static void marcarGestoVolumenVisto(Context c) {
+        prefs(c).edit().putBoolean("gesto_volumen_visto", true).apply();
+    }
+
     public static boolean gestoBrilloVisto(Context c) {
         return prefs(c).getBoolean("gesto_brillo_visto", false);
     }

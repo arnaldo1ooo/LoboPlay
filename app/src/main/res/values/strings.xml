@@ -87,7 +87,7 @@
         <item>Otro</item>
     </string-array>
     <string name="gesto_brillo">Brillo con el dedo</string>
-    <string name="gesto_brillo_resumen">Desliza hacia arriba o abajo por el lado izquierdo del reproductor para cambiar el brillo</string>
+    <string name="gesto_brillo_resumen">Desliza hacia arriba o abajo por el borde izquierdo del reproductor para cambiar el brillo</string>
     <string name="apariencia">Apariencia</string>
     <string name="tema">Tema</string>
     <string-array name="tema_nombres">
@@ -100,4 +100,6 @@
         <item>claro</item>
         <item>oscuro</item>
     </string-array>
+    <string name="gesto_volumen">Volumen con el dedo</string>
+    <string name="gesto_volumen_resumen">Desliza hacia arriba o abajo por el borde derecho del reproductor para cambiar el volumen</string>
 </resources>

@@ -30,6 +30,11 @@
             app:title="@string/gesto_brillo"
             app:summary="@string/gesto_brillo_resumen" />
         <SwitchPreferenceCompat
+            app:key="gesto_volumen"
+            app:defaultValue="true"
+            app:title="@string/gesto_volumen"
+            app:summary="@string/gesto_volumen_resumen" />
+        <SwitchPreferenceCompat
             app:key="cursor_tv"
             app:defaultValue="true"
             app:title="@string/cursor_tv"

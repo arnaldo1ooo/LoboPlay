@@ -153,7 +153,7 @@ public class NavegadorActivity extends AppCompatActivity {
     // o con la flecha arriba del control remoto.
     private boolean barraAutomatica;
     private boolean barraOculta;
-    private GestoBrillo gestoBrillo;
+    private GestosLaterales gestos;
     private final Runnable ocultarBarra = this::ocultarBarraSola;
     // Reproduciendo un .m3u8 en la pagina propia de la app: no hay anuncios que bloquear, y el bloqueador
     // (con una lista grande) podia cortar la lista del video y dar "manifestParsingError (200)".
@@ -300,8 +300,8 @@ public class NavegadorActivity extends AppCompatActivity {
         prepararImagenEnImagen();
         prepararCursor();
         if (!esTv) {
-            gestoBrillo = new GestoBrillo(this, contenedor);
-            gestoBrillo.presentarSiHaceFalta();
+            gestos = new GestosLaterales(this, contenedor);
+            gestos.presentarSiHaceFalta();
         }
 
         final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
@@ -427,9 +427,9 @@ public class NavegadorActivity extends AppCompatActivity {
                 programarOcultarBarra(5000);
             }
         }
-        if (gestoBrillo != null && !enPip()) {
+        if (gestos != null && !enPip()) {
             int limite = contenedor.getHeight() - (barraOculta ? 0 : barra.getHeight());
-            if (gestoBrillo.procesar(ev, limite, cancelar -> super.dispatchTouchEvent(cancelar))) return true;
+            if (gestos.procesar(ev, limite, cancelar -> super.dispatchTouchEvent(cancelar))) return true;
         }
         return super.dispatchTouchEvent(ev);
     }
@@ -874,7 +874,7 @@ public class NavegadorActivity extends AppCompatActivity {
         if (detector != null) detector.cancelar();
         cerrarDialogoBusqueda();
         manejador.removeCallbacksAndMessages(null);
-        if (gestoBrillo != null) gestoBrillo.liberar();
+        if (gestos != null) gestos.liberar();
         if (web != null) {
             ((ViewGroup) web.getParent()).removeView(web);
             web.destroy();
