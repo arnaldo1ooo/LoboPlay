@@ -56,7 +56,7 @@ import py.loboplay.app.util.PaginasVideo;
 import py.loboplay.app.util.BloqueadorAnuncios;
 import py.loboplay.app.util.Bordes;
 
-// Navegador interno: barra superior, anuncios bloqueados, video a pantalla completa,
+// Navegador interno: barra inferior, anuncios bloqueados, video a pantalla completa,
 // imagen en imagen, modo escritorio y cursor para el control remoto.
 public class NavegadorActivity extends AppCompatActivity {
     public static final String EXTRA_URL = "url";
@@ -153,6 +153,7 @@ public class NavegadorActivity extends AppCompatActivity {
     // o con la flecha arriba del control remoto.
     private boolean barraAutomatica;
     private boolean barraOculta;
+    private GestoBrillo gestoBrillo;
     private final Runnable ocultarBarra = this::ocultarBarraSola;
     // Reproduciendo un .m3u8 en la pagina propia de la app: no hay anuncios que bloquear, y el bloqueador
     // (con una lista grande) podia cortar la lista del video y dar "manifestParsingError (200)".
@@ -298,6 +299,10 @@ public class NavegadorActivity extends AppCompatActivity {
 
         prepararImagenEnImagen();
         prepararCursor();
+        if (!esTv) {
+            gestoBrillo = new GestoBrillo(this, contenedor);
+            gestoBrillo.presentarSiHaceFalta();
+        }
 
         final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
         sitioId = getIntent().getLongExtra(EXTRA_SITIO_ID, -1);
@@ -327,6 +332,11 @@ public class NavegadorActivity extends AppCompatActivity {
         if (PaginasVideo.esFlujoHls(url)) {
             // Direccion directa del video (.m3u8): se reproduce con una pagina propia, sin anuncios ni deteccion.
             flujoPropio = true;
+            // Sin nada que tocar: el cursor se apaga (el boton de la barra lo vuelve a activar).
+            if (cursor != null) {
+                cursorActivo = false;
+                aplicarCursor();
+            }
             prepararFlujo(url, pagina);
             // La pagina del reproductor avisa si el video arranca o falla.
             web.addJavascriptInterface(new Object() {
@@ -362,7 +372,7 @@ public class NavegadorActivity extends AppCompatActivity {
         web.requestFocus();
     }
 
-    // ---------- barra superior que se esconde ----------
+    // ---------- barra inferior que se esconde ----------
 
     private void programarOcultarBarra(long ms) {
         if (!barraAutomatica) return;
@@ -387,18 +397,22 @@ public class NavegadorActivity extends AppCompatActivity {
         programarOcultarBarra(5000);
     }
 
-    // Tocar el borde de arriba vuelve a mostrar la barra; cualquier otro toque reinicia la espera.
+    // Tocar el borde de abajo vuelve a mostrar la barra; cualquier otro toque reinicia la espera.
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
         if (ev.getAction() == MotionEvent.ACTION_DOWN && barraAutomatica && vistaCompleta == null && !enPip()) {
             if (barraOculta) {
-                if (ev.getY() < 64 * getResources().getDisplayMetrics().density) {
+                if (ev.getY() > contenedor.getHeight() - 64 * getResources().getDisplayMetrics().density) {
                     mostrarBarra();
                     return true;
                 }
             } else {
                 programarOcultarBarra(5000);
             }
+        }
+        if (gestoBrillo != null && !enPip()) {
+            int limite = contenedor.getHeight() - (barraOculta ? 0 : barra.getHeight());
+            if (gestoBrillo.procesar(ev, limite, cancelar -> super.dispatchTouchEvent(cancelar))) return true;
         }
         return super.dispatchTouchEvent(ev);
     }
@@ -685,7 +699,7 @@ public class NavegadorActivity extends AppCompatActivity {
             }
         }
         if (ev.getAction() == KeyEvent.ACTION_DOWN && vistaCompleta == null && !enPip()) {
-            if (barraOculta && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_UP && !cursorActivo) {
+            if (barraOculta && ev.getKeyCode() == KeyEvent.KEYCODE_DPAD_DOWN && !cursorActivo) {
                 mostrarBarra();
                 findViewById(R.id.btnAtras).requestFocus();
                 return true;
@@ -722,19 +736,19 @@ public class NavegadorActivity extends AppCompatActivity {
         float borde = 4 * d;
 
         if (tecla == KeyEvent.KEYCODE_DPAD_UP && cursor.getPosY() <= borde) {
-            if (web.getScrollY() > 0) {
-                web.scrollBy(0, -(int) (paso * 2));
+            if (web.getScrollY() > 0) web.scrollBy(0, -(int) (paso * 2));
+            return;
+        }
+        if (tecla == KeyEvent.KEYCODE_DPAD_DOWN && cursor.getPosY() >= cursor.getHeight() - borde) {
+            if (web.canScrollVertically(1)) {
+                web.scrollBy(0, (int) (paso * 2));
             } else {
-                // Arriba del todo: pasa el foco a la barra superior.
+                // Abajo del todo: pasa el foco a la barra inferior.
                 cursorActivo = false;
                 aplicarCursor();
                 mostrarBarra();
                 btnCursor.requestFocus();
             }
-            return;
-        }
-        if (tecla == KeyEvent.KEYCODE_DPAD_DOWN && cursor.getPosY() >= cursor.getHeight() - borde) {
-            web.scrollBy(0, (int) (paso * 2));
             return;
         }
         float dx = 0;
@@ -821,6 +835,7 @@ public class NavegadorActivity extends AppCompatActivity {
         if (detector != null) detector.cancelar();
         cerrarDialogoBusqueda();
         manejador.removeCallbacksAndMessages(null);
+        if (gestoBrillo != null) gestoBrillo.liberar();
         if (web != null) {
             ((ViewGroup) web.getParent()).removeView(web);
             web.destroy();

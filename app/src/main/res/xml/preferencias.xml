@@ -16,6 +16,11 @@
             app:title="@string/pip"
             app:summary="@string/pip_resumen" />
         <SwitchPreferenceCompat
+            app:key="gesto_brillo"
+            app:defaultValue="true"
+            app:title="@string/gesto_brillo"
+            app:summary="@string/gesto_brillo_resumen" />
+        <SwitchPreferenceCompat
             app:key="cursor_tv"
             app:defaultValue="true"
             app:title="@string/cursor_tv"

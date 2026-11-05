@@ -35,6 +35,19 @@ public final class Ajustes {
         return prefs(c).getBoolean(CURSOR_TV, true);
     }
 
+    // Dice si el brillo se cambia deslizando por el lado izquierdo del reproductor.
+    public static boolean gestoBrillo(Context c) {
+        return prefs(c).getBoolean("gesto_brillo", true);
+    }
+
+    public static boolean gestoBrilloVisto(Context c) {
+        return prefs(c).getBoolean("gesto_brillo_visto", false);
+    }
+
+    public static void marcarGestoBrilloVisto(Context c) {
+        prefs(c).edit().putBoolean("gesto_brillo_visto", true).apply();
+    }
+
     // Dice si ya se cargaron los canales iniciales.
     public static boolean yaPrecargado(Context c) {
         return prefs(c).getBoolean(PRECARGADO, false);

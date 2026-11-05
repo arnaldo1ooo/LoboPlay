@@ -120,3 +120,14 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Ajustes > Ayuda > Enviar comentarios, y "Enviar comentario sobre este canal" en el menú de pulsación larga de cada canal.
 - Campos: tipo, canal, mensaje (máx. 500, sin enlaces; opcional si hay canal elegido), contacto opcional. Se adjuntan solos versión de la app, Android, modelo, TV/teléfono y, si hay canal, su URL, país y video detectado.
 - `util/Comentarios.java` hace el POST a `formResponse` con los códigos `entry.…` (están al inicio del archivo; si se cambian los campos del formulario, actualizarlos ahí). Sin conexión, el comentario queda en cola (máx. 20) y se reintenta al abrir la app. Límite: un envío cada 10 s.
+
+## Brillo con el dedo
+- En el reproductor (solo teléfonos/tablets), deslizar arriba o abajo por el tercio izquierdo de la pantalla cambia el brillo de la ventana; muestra el porcentaje y no afecta al brillo del sistema. El nivel se mantiene al cambiar de canal.
+- La primera vez que se abre un canal, un panel sobre esa zona explica el gesto (se cierra solo, o al tocarlo).
+- Se desactiva en Ajustes > Brillo con el dedo (`gesto_brillo`). Un toque normal en esa zona sigue llegando a la página; solo el arrastre vertical se usa para el brillo.
+- Código en `ui/GestoBrillo.java`.
+
+## Barra abajo y cursor según el contenido
+- La barra de opciones del reproductor ahora está **abajo**. Se muestra tocando el borde inferior (teléfono), con Abajo en el control remoto (si no hay cursor) o llevando el cursor al fondo de una página que ya no se desplaza. Arriba/abajo del cursor siguen desplazando la página.
+- El gesto de brillo ignora la zona de la barra mientras está visible.
+- Con video propio (.m3u8) el cursor arranca apagado (izquierda/derecha cambian de canal); en páginas web sigue encendido según el ajuste "Cursor en TV". El botón de la barra lo activa o apaga.
