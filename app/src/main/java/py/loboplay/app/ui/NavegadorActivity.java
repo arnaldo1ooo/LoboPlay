@@ -130,6 +130,15 @@ public class NavegadorActivity extends AppCompatActivity {
             + "try{var f=t.requestFullscreen||t.webkitRequestFullscreen;var p=f.call(t);"
             + "if(p&&p.catch)p.catch(function(){});}catch(e){return 'no';}return 'ok';})()";
 
+    // Igual que la anterior pero, si el video esta dentro de un iframe (Dailymotion, etc.), amplia el iframe.
+    private static final String JS_PANTALLA_BOTON = "(function(){var t=null;var v=document.querySelector('video');"
+            + "if(v)t=v.closest('[class*=player],[id*=player]')||v;"
+            + "if(!t){var m=0;document.querySelectorAll('iframe').forEach(function(i){var a=i.clientWidth*i.clientHeight;"
+            + "if(a>m){m=a;t=i;}});}"
+            + "if(!t)return 'no';"
+            + "try{var f=t.requestFullscreen||t.webkitRequestFullscreen;var p=f.call(t);"
+            + "if(p&&p.catch)p.catch(function(){});}catch(e){return 'no';}return 'ok';})()";
+
     private static final String AGENTE_ESCRITORIO =
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -203,6 +212,10 @@ public class NavegadorActivity extends AppCompatActivity {
 
         titulo.setText(nombreCorto(url));
         findViewById(R.id.btnAtras).setOnClickListener(v -> retroceder());
+        findViewById(R.id.btnPantalla).setOnClickListener(v -> web.evaluateJavascript(JS_PANTALLA_BOTON, valor -> {
+            if (valor != null && valor.contains("no"))
+                Toast.makeText(this, R.string.pantalla_sin_video, Toast.LENGTH_SHORT).show();
+        }));
         findViewById(R.id.btnRecargar).setOnClickListener(v -> {
             if (htmlFlujo != null) cargarFlujo();
             else {

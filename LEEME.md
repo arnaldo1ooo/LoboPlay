@@ -148,3 +148,7 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - La primera vez de cada gesto, un panel sobre su zona muestra ▲ icono ▼ con las flechas animadas subiendo y bajando; se cierra solo o al tocarlo.
 - Ajustes: "Brillo con el dedo" y "Volumen con el dedo" se activan por separado. No aplica en TV.
 - `GestoBrillo.java` se renombró a `GestosLaterales.java`: borrar el archivo viejo si queda en el proyecto.
+
+## Botón de pantalla completa en la barra
+- Nuevo botón (`btnPantalla`) en la barra del reproductor, entre PiP y recargar. Pide pantalla completa al video de la página (`JS_PANTALLA_BOTON`); si el video está dentro de un iframe (p. ej. Dailymotion) amplía el iframe más grande; si no hay nada que ampliar, avisa con un mensaje.
+- Al entrar a pantalla completa se mantiene el comportamiento de siempre (horizontal solo en ese caso).

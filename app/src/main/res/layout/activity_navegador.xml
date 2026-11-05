@@ -131,6 +131,18 @@
                 app:tint="?attr/colorOnSurface" />
 
             <ImageButton
+                android:id="@+id/btnPantalla"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@drawable/bg_icono_boton"
+                android:contentDescription="@string/pantalla_completa"
+                android:focusable="true"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_pantalla_completa"
+                app:tint="?attr/colorOnSurface" />
+
+            <ImageButton
                 android:id="@+id/btnRecargar"
                 android:layout_width="44dp"
                 android:layout_height="44dp"

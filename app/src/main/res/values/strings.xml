@@ -102,4 +102,6 @@
     </string-array>
     <string name="gesto_volumen">Volumen con el dedo</string>
     <string name="gesto_volumen_resumen">Desliza hacia arriba o abajo por el borde derecho del reproductor para cambiar el volumen</string>
+    <string name="pantalla_completa">Pantalla completa</string>
+    <string name="pantalla_sin_video">No se encontró un video para ampliar</string>
 </resources>
