@@ -30,7 +30,6 @@ public class ComentariosActivity extends AppCompatActivity {
     private MaterialAutoCompleteTextView campoTipo;
     private MaterialAutoCompleteTextView campoCanal;
     private TextInputEditText campoMensaje;
-    private TextInputEditText campoContacto;
     private MaterialButton btnEnviar;
     private List<Sitio> sitios = new ArrayList<>();
     private Sitio elegido;
@@ -46,7 +45,6 @@ public class ComentariosActivity extends AppCompatActivity {
         campoTipo = findViewById(R.id.campoTipo);
         campoCanal = findViewById(R.id.campoCanal);
         campoMensaje = findViewById(R.id.campoMensaje);
-        campoContacto = findViewById(R.id.campoContacto);
         btnEnviar = findViewById(R.id.btnEnviar);
         ninguno = getString(R.string.comentario_ninguno);
 
@@ -97,7 +95,6 @@ public class ComentariosActivity extends AppCompatActivity {
         campos.put(Comentarios.TIPO, campoTipo.getText().toString());
         campos.put(Comentarios.CANAL, elegido != null ? elegido.nombre : "");
         campos.put(Comentarios.MENSAJE, mensaje);
-        campos.put(Comentarios.CONTACTO, campoContacto.getText() == null ? "" : campoContacto.getText().toString().trim());
         boolean tv = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_TYPE_MASK)
                 == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION;
         Comentarios.agregarDatosTecnicos(this, campos, tv);
