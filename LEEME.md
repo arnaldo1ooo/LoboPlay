@@ -152,3 +152,9 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 ## Botón de pantalla completa en la barra
 - Nuevo botón (`btnPantalla`) en la barra del reproductor, entre PiP y recargar. Pide pantalla completa al video de la página (`JS_PANTALLA_BOTON`); si el video está dentro de un iframe (p. ej. Dailymotion) amplía el iframe más grande; si no hay nada que ampliar, avisa con un mensaje.
 - Al entrar a pantalla completa se mantiene el comportamiento de siempre (horizontal solo en ese caso).
+
+## Ofuscación y optimización (R8)
+- En `release` se activan `isMinifyEnabled` e `isShrinkResources` con `proguard-android-optimize.txt` y `app/proguard-rules.pro` (Google Play pedía subir el porcentaje de ofuscación sobre el 25 %).
+- Reglas propias: conservar los métodos `@JavascriptInterface` (el WebView los llama por nombre), la entidad `Sitio` de Room, números de línea para desofuscar errores y avisos ignorados de jsoup.
+- Al subir el AAB, Play recibe el `mapping.txt` automáticamente; con él se leen las trazas de errores. Probar siempre la versión **release** (instalar el APK/AAB firmado) antes de publicar: detección de video, reproducción, cambio de canal, ajustes, iconos y comentarios.
+- Subir `versionCode` en cada publicación.
