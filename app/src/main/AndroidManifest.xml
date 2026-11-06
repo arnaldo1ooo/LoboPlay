@@ -7,12 +7,14 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <application
+        android:name=".LoboPlayApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:banner="@drawable/banner"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.JokerPy"
+        android:theme="@style/Theme.LoboPlay"
         android:usesCleartextTraffic="true">
 
         <activity
@@ -31,8 +33,10 @@
 
         <activity android:name=".ui.AgregarActivity" android:exported="false" />
         <activity android:name=".ui.AjustesActivity" android:exported="false" />
+        <activity android:name=".ui.ComentariosActivity" android:exported="false" />
         <activity
             android:name=".ui.NavegadorActivity"
+            android:supportsPictureInPicture="true"
             android:configChanges="orientation|screenSize|keyboardHidden|smallestScreenSize|screenLayout"
             android:exported="false" />
     </application>

@@ -1,5 +1,6 @@
 <resources>
-    <color name="icon_fondo">#0C447C</color>
-    <color name="azul">#0C447C</color>
-    <color name="foco">#378ADD</color>
+    <!-- Paleta LoboPlay: azul eléctrico, cian y azul noche del logo -->
+    <color name="icon_fondo">#02122B</color>
+    <color name="azul">#1A4FC4</color>
+    <color name="foco">#22D3EE</color>
 </resources>
