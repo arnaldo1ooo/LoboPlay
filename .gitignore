@@ -4,4 +4,6 @@
 /.idea/
 /build/
 /app/build/
+/app/debug/
+/app/release/
 .DS_Store

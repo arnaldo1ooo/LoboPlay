@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.LoboPlay" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#4FD8F5</item>
+        <item name="colorOnPrimary">#02122B</item>
+        <item name="colorSecondary">#22D3EE</item>
+        <item name="android:colorBackground">#03112A</item>
+        <item name="colorSurface">#0A1E3D</item>
+    </style>
+</resources>

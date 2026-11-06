@@ -1,9 +1,11 @@
 <resources>
-    <string name="app_name">JokerPy</string>
+    <string name="app_name">LoboPlay</string>
+    <string name="bienvenida_lema">Tu televisión en vivo</string>
     <string name="agregar_sitio">Agregar sitio</string>
     <string name="ajustes">Ajustes</string>
     <string name="buscar">Buscar</string>
-    <string name="sin_sitios">Todavía no hay sitios. Agrega uno para empezar.</string>
+    <string name="sin_sitios">Todavía no hay sitios</string>
+    <string name="sin_sitios_ayuda">Toca "Agregar sitio" para empezar</string>
     <string name="nombre">Nombre</string>
     <string name="direccion">Dirección web</string>
     <string name="cambiar_icono">Cambiar icono</string>
@@ -11,8 +13,6 @@
     <string name="guardar">Guardar</string>
     <string name="cancelar">Cancelar</string>
     <string name="editar_sitio">Editar sitio</string>
-    <string name="bloquear_anuncios">Bloquear anuncios</string>
-    <string name="bloquear_anuncios_resumen">Filtra los dominios de publicidad al navegar</string>
     <string name="abrir_externo">Abrir en el navegador externo</string>
     <string name="abrir_externo_resumen">Usa el navegador del dispositivo en lugar del interno</string>
     <string name="respaldo">Respaldo</string>
@@ -21,4 +21,87 @@
     <string name="importar">Importar lista</string>
     <string name="importar_resumen">Agrega los sitios de un archivo guardado antes</string>
     <string name="sin_selector">Este dispositivo no tiene selector de archivos</string>
+    <string name="todos">Todos</string>
+    <string name="favoritos">Favoritos</string>
+    <string name="atras">Atrás</string>
+    <string name="recargar">Recargar</string>
+    <string name="cerrar">Cerrar</string>
+    <string name="sin_favoritos">No tienes favoritos todavía. Mantén presionado un sitio para marcarlo.</string>
+    <string name="buscando_info">Buscando título e icono de la página…</string>
+    <string name="navegacion">Navegación</string>
+    <string name="actualizar_anuncios">Actualizar lista de anuncios</string>
+    <string name="actualizar_anuncios_resumen">Descarga una lista más completa de dominios de publicidad</string>
+    <string name="pip">Imagen en imagen</string>
+    <string name="pip_resumen">Sigue viendo el video en una ventana pequeña al salir de la app</string>
+    <string name="cursor_tv">Cursor con el control remoto</string>
+    <string name="cursor_tv_resumen">En TV, mueve un cursor con las flechas dentro de las páginas</string>
+    <string name="recientes">Recientes</string>
+    <string name="ordenar">Ordenar</string>
+    <string name="modo_escritorio">Abrir en modo escritorio</string>
+    <string name="pais">País</string>
+    <string name="pais_todos">Todos los países</string>
+    <string name="video_detectado">Video detectado</string>
+    <string name="video_ayuda">Se completa solo al escribir la dirección. Si no se encuentra, se abre la página.</string>
+    <string name="video_buscando">Buscando el video de la página…</string>
+    <string name="redetectar_video">Volver a detectar video</string>
+    <string name="video_fallo_auto">El video falló: buscando uno nuevo…</string>
+    <string name="video_fallo">No se pudo reproducir el video</string>
+    <string name="video_rebuscando">Buscando el video de nuevo…</string>
+    <string name="video_mismo">El video sigue siendo el mismo</string>
+    <string name="video_nuevo_no_hay">No se encontró un video: se abre la página</string>
+    <string name="video_cancelado">Búsqueda cancelada</string>
+    <string name="probar_video">Probar video</string>
+    <string name="no_usar_video">No usar este video (abrir la página)</string>
+    <string name="prueba_cargando">Cargando la vista previa… (sin sonido)</string>
+    <string name="prueba_ok">✓ El video se reproduce</string>
+    <string name="prueba_dudosa">No se pudo confirmar. Mira la imagen: si se ve el video, guárdalo; si no, usa la página.</string>
+    <string name="prueba_fallo">✗ No se pudo reproducir: </string>
+    <string name="video_encontrado">Video encontrado</string>
+    <string name="video_no_encontrado">No se encontró un video: se abrirá la página directamente</string>
+    <string name="bloquear_anuncios_sitio">Bloquear anuncios en este sitio</string>
+    <string name="cursor">Cursor</string>
+    <string name="pip_boton">Imagen en imagen</string>
+    <string name="sin_recientes">Todavía no abriste ningún sitio</string>
+    <string name="busqueda_lenta">Está tardando más de lo normal. Puedes escribir el nombre y guardar.</string>
+    <string name="canal_anterior">Canal anterior</string>
+    <string name="canal_siguiente">Canal siguiente</string>
+    <string name="comentarios_titulo">Enviar comentarios</string>
+    <string name="comentarios_resumen">Cuéntanos un problema con un canal o sugiere uno nuevo</string>
+    <string name="comentarios_ayuda">Ayuda</string>
+    <string name="comentario_tipo">Tipo</string>
+    <string name="comentario_canal">Canal</string>
+    <string name="comentario_ninguno">Ninguno (general)</string>
+    <string name="comentario_mensaje">Mensaje</string>
+    <string name="comentario_contacto">Contacto (opcional)</string>
+    <string name="comentario_enviar">Enviar</string>
+    <string name="comentario_enviando">Enviando…</string>
+    <string name="comentario_gracias">¡Gracias por tu comentario!</string>
+    <string name="comentario_pendiente">Sin conexión: se enviará más tarde</string>
+    <string name="comentario_falta_mensaje">Escribe un mensaje o elige un canal</string>
+    <string name="comentario_sin_enlaces">No se permiten enlaces en el mensaje</string>
+    <string name="comentario_espera">Espera unos segundos antes de enviar otro</string>
+    <string-array name="comentario_tipos">
+        <item>Problema con un canal</item>
+        <item>Sugerencia de canal</item>
+        <item>Error de la app</item>
+        <item>Otro</item>
+    </string-array>
+    <string name="gesto_brillo">Brillo con el dedo</string>
+    <string name="gesto_brillo_resumen">Desliza hacia arriba o abajo por el borde izquierdo del reproductor para cambiar el brillo</string>
+    <string name="apariencia">Apariencia</string>
+    <string name="tema">Tema</string>
+    <string-array name="tema_nombres">
+        <item>Como el sistema</item>
+        <item>Claro</item>
+        <item>Oscuro</item>
+    </string-array>
+    <string-array name="tema_valores">
+        <item>sistema</item>
+        <item>claro</item>
+        <item>oscuro</item>
+    </string-array>
+    <string name="gesto_volumen">Volumen con el dedo</string>
+    <string name="gesto_volumen_resumen">Desliza hacia arriba o abajo por el borde derecho del reproductor para cambiar el volumen</string>
+    <string name="pantalla_completa">Pantalla completa</string>
+    <string name="pantalla_sin_video">No se encontró un video para ampliar</string>
 </resources>

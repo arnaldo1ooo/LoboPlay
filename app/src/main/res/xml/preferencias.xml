@@ -1,15 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
-    <SwitchPreferenceCompat
-        app:key="bloquear_anuncios"
-        app:defaultValue="true"
-        app:title="@string/bloquear_anuncios"
-        app:summary="@string/bloquear_anuncios_resumen" />
-    <SwitchPreferenceCompat
-        app:key="abrir_externo"
-        app:defaultValue="false"
-        app:title="@string/abrir_externo"
-        app:summary="@string/abrir_externo_resumen" />
+    <PreferenceCategory app:title="@string/apariencia">
+        <ListPreference
+            app:key="tema"
+            app:defaultValue="sistema"
+            app:entries="@array/tema_nombres"
+            app:entryValues="@array/tema_valores"
+            app:title="@string/tema"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/navegacion">
+        <Preference
+            app:key="actualizar_anuncios"
+            app:title="@string/actualizar_anuncios"
+            app:summary="@string/actualizar_anuncios_resumen" />
+        <SwitchPreferenceCompat
+            app:key="abrir_externo"
+            app:defaultValue="false"
+            app:title="@string/abrir_externo"
+            app:summary="@string/abrir_externo_resumen" />
+        <SwitchPreferenceCompat
+            app:key="pip_activado"
+            app:defaultValue="true"
+            app:title="@string/pip"
+            app:summary="@string/pip_resumen" />
+        <SwitchPreferenceCompat
+            app:key="gesto_brillo"
+            app:defaultValue="true"
+            app:title="@string/gesto_brillo"
+            app:summary="@string/gesto_brillo_resumen" />
+        <SwitchPreferenceCompat
+            app:key="gesto_volumen"
+            app:defaultValue="true"
+            app:title="@string/gesto_volumen"
+            app:summary="@string/gesto_volumen_resumen" />
+        <SwitchPreferenceCompat
+            app:key="cursor_tv"
+            app:defaultValue="true"
+            app:title="@string/cursor_tv"
+            app:summary="@string/cursor_tv_resumen" />
+    </PreferenceCategory>
     <PreferenceCategory app:title="@string/respaldo">
         <Preference
             app:key="exportar"
@@ -19,5 +49,11 @@
             app:key="importar"
             app:title="@string/importar"
             app:summary="@string/importar_resumen" />
+    </PreferenceCategory>
+    <PreferenceCategory app:title="@string/comentarios_ayuda">
+        <Preference
+            app:key="comentarios"
+            app:title="@string/comentarios_titulo"
+            app:summary="@string/comentarios_resumen" />
     </PreferenceCategory>
 </PreferenceScreen>

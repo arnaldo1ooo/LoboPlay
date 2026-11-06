@@ -1,6 +1,56 @@
 [
-  { "nombre": "Telefuturo", "url": "https://www.telefuturo.com.py" },
-  { "nombre": "SNT", "url": "https://www.snt.com.py" },
-  { "nombre": "Trece", "url": "https://www.trece.com.py" },
-  { "nombre": "Unicanal", "url": "https://www.unicanal.com.py" }
+  {
+    "nombre": "Telefuturo",
+    "url": "https://www.telefuturo.com.py",
+    "video": "https://www.desdepylabs.com/External/tvaccion/telefuturo",
+    "pais": "PY"
+  },
+  {
+    "nombre": "SNT",
+    "url": "https://www.snt.com.py/envivo/",
+    "pais": "PY",
+    "bloquearAnuncios": false
+  },
+  {
+    "nombre": "Trece",
+    "url": "https://www.trece.com.py",
+    "video": "https://geo.dailymotion.com/player/x1at3a.html?video=k1bgQZHbBKPqXOHczd4",
+    "pais": "PY"
+  },
+  {
+    "nombre": "Unicanal",
+    "url": "https://www.unicanal.com.py",
+    "pais": "PY",
+    "video": "https://geo.dailymotion.com/player/x1ilma.html?video=xak2lou"
+  },
+  {
+    "nombre": "TV Pública",
+    "url": "https://www.tvpublica.com.ar/vivo",
+    "pais": "AR"
+  },
+  {
+    "nombre": "Red Uno",
+    "url": "https://www.reduno.com.bo/senal-en-vivo",
+    "pais": "BO"
+  },
+  {
+    "nombre": "Bolivia TV",
+    "url": "https://www.boliviatv.bo/principal/vivo71.php",
+    "pais": "BO"
+  },
+  {
+    "nombre": "TV Cultura",
+    "url": "https://culturaplay.tvcultura.com.br/channels/14",
+    "pais": "BR"
+  },
+  {
+    "nombre": "TVN",
+    "url": "https://www.tvn.cl/en-vivo",
+    "pais": "CL"
+  },
+  {
+    "nombre": "Ecuavisa",
+    "url": "https://www.ecuavisa.com/envivo",
+    "pais": "EC"
+  }
 ]
