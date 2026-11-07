@@ -24,7 +24,8 @@ public final class Comentarios {
     public static final String TIPO = "entry.2126958350";
     public static final String CANAL = "entry.1245988968";
     public static final String MENSAJE = "entry.647324269";
-    public static final String CONTACTO = "entry.597668868";
+    // Campo que ya no se usa (correo): se descarta aunque quede en un comentario pendiente guardado.
+    private static final String CONTACTO_ANTIGUO = "entry.597668868";
     public static final String VERSION = "entry.1057244427";
     public static final String DISPOSITIVO = "entry.441666054";
     public static final String DATOS_CANAL = "entry.1502928404";
@@ -112,6 +113,7 @@ public final class Comentarios {
         try {
             StringBuilder cuerpo = new StringBuilder();
             for (Map.Entry<String, String> e : campos.entrySet()) {
+                if (CONTACTO_ANTIGUO.equals(e.getKey())) continue;
                 String v = e.getValue() == null ? "" : e.getValue();
                 if (v.length() > MAX_CAMPO) v = v.substring(0, MAX_CAMPO);
                 if (cuerpo.length() > 0) cuerpo.append('&');
