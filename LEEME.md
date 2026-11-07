@@ -118,7 +118,7 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 
 ## Comentarios (formulario de Google)
 - Ajustes > Ayuda > Enviar comentarios, y "Enviar comentario sobre este canal" en el menú de pulsación larga de cada canal.
-- Campos: tipo, canal, mensaje (máx. 500, sin enlaces; opcional si hay canal elegido), contacto opcional. Se adjuntan solos versión de la app, Android, modelo, TV/teléfono y, si hay canal, su URL, país y video detectado.
+- Campos: tipo, canal, mensaje (máx. 500, sin enlaces; opcional si hay canal elegido). Se adjuntan solos versión de la app, Android, modelo, TV/teléfono y, si hay canal, su URL, país y video detectado.
 - `util/Comentarios.java` hace el POST a `formResponse` con los códigos `entry.…` (están al inicio del archivo; si se cambian los campos del formulario, actualizarlos ahí). Sin conexión, el comentario queda en cola (máx. 20) y se reintenta al abrir la app. Límite: un envío cada 10 s.
 
 ## Brillo con el dedo
@@ -158,3 +158,5 @@ Build > Build Bundle(s) / APK(s) > Build APK(s). Queda en `app/build/outputs/apk
 - Reglas propias: conservar los métodos `@JavascriptInterface` (el WebView los llama por nombre), la entidad `Sitio` de Room, números de línea para desofuscar errores y avisos ignorados de jsoup.
 - Al subir el AAB, Play recibe el `mapping.txt` automáticamente; con él se leen las trazas de errores. Probar siempre la versión **release** (instalar el APK/AAB firmado) antes de publicar: detección de video, reproducción, cambio de canal, ajustes, iconos y comentarios.
 - Subir `versionCode` en cada publicación.
+
+- Se quitó el campo de contacto (correo) de Comentarios por la declaración de seguridad de datos de Google Play. Si queda un comentario pendiente guardado con ese campo, se descarta al enviarlo. En el formulario de Google, la pregunta "Contacto" debe ser opcional o eliminarse.
