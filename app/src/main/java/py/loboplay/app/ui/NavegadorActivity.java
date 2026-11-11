@@ -229,7 +229,9 @@ public class NavegadorActivity extends AppCompatActivity {
         ajustes.setJavaScriptEnabled(true);
         ajustes.setDomStorageEnabled(true);
         ajustes.setMediaPlaybackRequiresUserGesture(false);
-        ajustes.setSupportMultipleWindows(false);
+        // Con ventanas multiples activadas, window.open / target=_blank llegan a onCreateWindow (que las rechaza).
+        // Con false, WebView cargaba el popup EN la misma pagina: esa era la redireccion a publicidad al dar play.
+        ajustes.setSupportMultipleWindows(true);
         ajustes.setJavaScriptCanOpenWindowsAutomatically(false);
         if (getIntent().getBooleanExtra(EXTRA_ESCRITORIO, false)) {
             ajustes.setUserAgentString(AGENTE_ESCRITORIO);
@@ -256,9 +258,14 @@ public class NavegadorActivity extends AppCompatActivity {
             // Evita saltos a otras apps o a sitios de publicidad.
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
-                if (bloquear && BloqueadorAnuncios.esAnuncio(r.getUrl().getHost())) return true;
                 String esquema = r.getUrl().getScheme();
-                return !("http".equals(esquema) || "https".equals(esquema));
+                if (!("http".equals(esquema) || "https".equals(esquema))) return true;
+                if (!bloquear) return false;
+                String host = r.getUrl().getHost();
+                if (BloqueadorAnuncios.esAnuncio(host)) return true;
+                // Salto a otro sitio que no es el del canal (lo normal al dar play: redireccion a publicidad).
+                if (r.isForMainFrame() && !esSitioPermitido(host)) return true;
+                return false;
             }
         });
 
@@ -383,6 +390,39 @@ public class NavegadorActivity extends AppCompatActivity {
             web.loadUrl(url);
         }
         web.requestFocus();
+    }
+
+    // Sitios a los que la pagina puede navegar: el del video y el de la pagina del canal (y sus subdominios).
+    private boolean esSitioPermitido(String host) {
+        if (host == null) return false;
+        String base = baseSitio(host);
+        String url = getIntent().getStringExtra(EXTRA_URL);
+        String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
+        return base.equals(baseSitio(hostDe(url))) || base.equals(baseSitio(hostDe(pagina)));
+    }
+
+    private static String hostDe(String direccion) {
+        try {
+            return direccion == null ? null : Uri.parse(direccion).getHost();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // "a.b.ejemplo.com" -> "ejemplo.com" ; "x.ejemplo.com.py" -> "ejemplo.com.py"
+    private static String baseSitio(String host) {
+        if (host == null) return "";
+        String[] p = host.toLowerCase(java.util.Locale.ROOT).split("\\.");
+        int n = p.length;
+        if (n <= 2) return host.toLowerCase(java.util.Locale.ROOT);
+        boolean doble = p[n - 1].length() == 2 && p[n - 2].length() <= 3;
+        int desde = doble ? n - 3 : n - 2;
+        StringBuilder sb = new StringBuilder();
+        for (int i = desde; i < n; i++) {
+            if (sb.length() > 0) sb.append('.');
+            sb.append(p[i]);
+        }
+        return sb.toString();
     }
 
     // ---------- barra inferior que se esconde ----------
