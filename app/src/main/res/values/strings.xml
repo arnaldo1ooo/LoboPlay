@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">LoboPlay</string>
     <string name="bienvenida_lema">Tu televisión en vivo</string>
+    <string name="version_formato">v%1$s</string>
     <string name="agregar_sitio">Agregar sitio</string>
     <string name="ajustes">Ajustes</string>
     <string name="buscar">Buscar</string>

@@ -236,5 +236,13 @@
             android:text="@string/bienvenida_lema"
             android:textColor="#9FB6D6"
             android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/versionBienvenida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="#6E8AAF"
+            android:textSize="13sp" />
     </LinearLayout>
 </FrameLayout>

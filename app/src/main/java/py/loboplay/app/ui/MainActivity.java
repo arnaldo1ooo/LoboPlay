@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Locale;
 
 import py.loboplay.app.R;
+import py.loboplay.app.BuildConfig;
 import py.loboplay.app.data.AppDatabase;
 import py.loboplay.app.data.IconoHelper;
 import py.loboplay.app.data.Precarga;
@@ -90,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements SitioAdapter.List
         vacioTitulo = findViewById(R.id.vacioTitulo);
         vacioAyuda = findViewById(R.id.vacioAyuda);
         lista = findViewById(R.id.lista);
+        ((TextView) findViewById(R.id.versionBienvenida)).setText(
+                getString(R.string.version_formato, BuildConfig.VERSION_NAME));
 
         // Pantalla de bienvenida solo al abrir la app (no al girar la pantalla).
         final View bienvenida = findViewById(R.id.bienvenida);
