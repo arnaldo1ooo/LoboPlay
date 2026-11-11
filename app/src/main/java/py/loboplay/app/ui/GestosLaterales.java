@@ -211,6 +211,15 @@ class GestosLaterales {
         }, 1500);
     }
 
+    // Al volver a la página del canal, los deslizamientos deben quedar libres para la WebView.
+    void desactivar() {
+        arrastrando = false;
+        gesto = NINGUNO;
+        manejador.removeCallbacks(esconder);
+        if (indicador != null) indicador.setVisibility(View.GONE);
+        quitarIntros();
+    }
+
     private void agregarIntro(String icono, String texto, int lado, List<View[]> flechas) {
         float d = act.getResources().getDisplayMetrics().density;
         LinearLayout panel = new LinearLayout(act);

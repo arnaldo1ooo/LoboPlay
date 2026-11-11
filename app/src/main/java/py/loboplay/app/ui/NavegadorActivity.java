@@ -162,6 +162,7 @@ public class NavegadorActivity extends AppCompatActivity {
     // o con la flecha arriba del control remoto.
     private boolean barraAutomatica;
     private boolean barraOculta;
+    private boolean modoPagina;
     private GestosLaterales gestos;
     private final Runnable ocultarBarra = this::ocultarBarraSola;
     // Reproduciendo un .m3u8 en la pagina propia de la app: no hay anuncios que bloquear, y el bloqueador
@@ -195,6 +196,8 @@ public class NavegadorActivity extends AppCompatActivity {
             finish();
             return;
         }
+        final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
+        modoPagina = pagina == null || pagina.equals(url);
 
         BloqueadorAnuncios.cargar(this);
         // Los anuncios se bloquean salvo en los sitios que lo desactivan (algunos canales
@@ -319,12 +322,11 @@ public class NavegadorActivity extends AppCompatActivity {
 
         prepararImagenEnImagen();
         prepararCursor();
-        if (!esTv) {
+        if (!esTv && !modoPagina) {
             gestos = new GestosLaterales(this, contenedor);
             gestos.presentarSiHaceFalta();
         }
 
-        final String pagina = getIntent().getStringExtra(EXTRA_PAGINA);
         sitioId = getIntent().getLongExtra(EXTRA_SITIO_ID, -1);
         listaCanales = getIntent().getLongArrayExtra(EXTRA_LISTA);
         if (sitioId >= 0 && listaCanales != null && listaCanales.length > 1) {
@@ -480,7 +482,7 @@ public class NavegadorActivity extends AppCompatActivity {
                 programarOcultarBarra(5000);
             }
         }
-        if (gestos != null && !enPip()) {
+        if (gestos != null && !modoPagina && !enPip()) {
             int limite = contenedor.getHeight() - (barraOculta ? 0 : barra.getHeight());
             if (gestos.procesar(ev, limite, cancelar -> super.dispatchTouchEvent(cancelar))) return true;
         }
@@ -563,6 +565,8 @@ public class NavegadorActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.video_nuevo_no_hay, Toast.LENGTH_LONG).show();
                 htmlFlujo = null;
                 barraAutomatica = false;
+                modoPagina = true;
+                if (gestos != null) gestos.desactivar();
                 mostrarBarra();
                 web.loadUrl(paginaSitio);
             } else if (video.equals(videoActual)) {
